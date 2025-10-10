@@ -676,7 +676,7 @@
             
             const data = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null });
             
-            let totalRecords = data.length - 1;
+            let totalRecords = 0;
             let removedDays = 0;
             let removedOther = 0;
             let validRecords = [];
@@ -684,20 +684,24 @@
             for (let i = 1; i < data.length; i++) {
                 const row = data[i];
                 
+                // Skip blank rows (check if critical fields are empty)
                 const rut = row[0];
+                const fechaEgreso = row[6];
+                const fechaReing = row[7];
+                
+                if (!rut || !fechaEgreso || !fechaReing) continue;
+                
+                totalRecords++;
+                
                 const nombre = row[1];
                 const edad = row[2];
                 const sexo = row[3];
                 const idIngreso = row[4];
                 const fechaIngreso = row[5];
-                const fechaEgreso = row[6];
-                const fechaReing = row[7];
                 const diagnostico = row[10];
                 const unidad = row[14];
                 const tratante = row[16];
                 const idReingreso = row[18];
-                
-                if (!fechaEgreso || !fechaReing) continue;
                 
                 const dias = getDaysDifference(fechaEgreso, fechaReing);
                 
