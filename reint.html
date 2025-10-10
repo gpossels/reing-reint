@@ -458,8 +458,8 @@
                         <input type="text" id="inputCirugiaVerde" placeholder="Nombre de la prestación">
                         <button class="btn-small" onclick="addCirugiaVerde()">Agregar</button>
                     </div>
-                </div>
-                <div class="list-items" id="listCirugiasVerdes"></div>
+                    <div class="list-items" id="listCirugiasVerdes"></div>
+                </div>              
             </div>
             
             <div class="config-group amarillo collapsed">
@@ -469,8 +469,8 @@
                         <input type="text" id="inputCirugiaAmarilla" placeholder="Nombre de la prestación">
                         <button class="btn-small" onclick="addCirugiaAmarilla()">Agregar</button>
                     </div>
+                <div class="list-items" id="listCirugiasAmarillas"></div>                
                 </div>
-                <div class="list-items" id="listCirugiasAmarillas"></div>
             </div>
             
             <div class="config-group rojo collapsed">
@@ -480,8 +480,8 @@
                         <input type="text" id="inputCirugiaRoja" placeholder="Nombre de la prestación">
                         <button class="btn-small" onclick="addCirugiaRoja()">Agregar</button>
                     </div>
-                </div>
                 <div class="list-items" id="listCirugiasRojas"></div>
+                </div>
             </div>
             
             <button class="btn" onclick="reAnalyze()" style="width: 100%;">🔄 Re-analizar con Nuevas Configuraciones</button>
@@ -803,6 +803,8 @@
             
             document.getElementById('totalRecords').textContent = totalRecords;
             completeOriginalData = rawData.map(r => ({...r}));
+            console.log('rawData length:', rawData.length);
+            console.log('completeOriginalData length:', completeOriginalData.length);
             processData(rawData);
         }
         
