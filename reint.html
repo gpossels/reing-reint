@@ -1032,7 +1032,7 @@
                     <td>${record.rutCirujano || ''}</td>
                     <td>${record.nombreCirujano || ''}</td>
                     <td>${record.idPaciente || ''}</td>
-                    <td style="text-align: center;"><input type="checkbox" /></td>
+                    <td style="text-align: center;"><input type="checkbox" class="reintervencion-check" data-id="${record.idIngreso}-${record.idProtocolo}" data-record='${JSON.stringify(record).replace(/'/g, "&#39;")}' onchange="syncCheckboxes(this)" /></td>
                 `;
                 
                 tbody.appendChild(tr);
@@ -1137,7 +1137,7 @@ function downloadCheckedRows() {
             <td>${record.rutCirujano || ''}</td>
             <td>${record.nombreCirujano || ''}</td>
             <td>${record.idPaciente || ''}</td>
-            <td style="text-align: center;"><input type="checkbox" /></td>
+            <td style="text-align: center;"><input type="checkbox" class="reintervencion-check" data-id="${record.idIngreso}-${record.idProtocolo}" data-record='${JSON.stringify(record).replace(/'/g, "&#39;")}' onchange="syncCheckboxes(this)" /></td>
         `;
         
         tbody.appendChild(tr);
