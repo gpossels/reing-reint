@@ -949,38 +949,52 @@
         }
         
         function applyColorFilter() {
-            const filterValue = document.getElementById('colorFilter').value;
-            
-            let filteredRecords = allClassifiedRecords;
-            
-            if (filterValue !== 'all') {
-                const patientsWithAlert = new Set();
-                
-                if (filterValue === 'red') {
-                    allClassifiedRecords.forEach(r => {
-                        if (r.colorClass === 'red') {
-                            patientsWithAlert.add(r.rutPaciente);
-                        }
-                    });
-                } else if (filterValue === 'yellow') {
-                    allClassifiedRecords.forEach(r => {
-                        if (r.colorClass === 'yellow') {
-                            patientsWithAlert.add(r.rutPaciente);
-                        }
-                    });
-                } else if (filterValue === 'red-yellow') {
-                    allClassifiedRecords.forEach(r => {
-                        if (r.colorClass === 'red' || r.colorClass === 'yellow') {
-                            patientsWithAlert.add(r.rutPaciente);
-                        }
-                    });
+    // Save current checkbox states
+    const checkedIds = new Set();
+    document.querySelectorAll('#tableBody .reintervencion-check:checked').forEach(cb => {
+        checkedIds.add(cb.getAttribute('data-id'));
+    });
+    
+    const filterValue = document.getElementById('colorFilter').value;
+    
+    let filteredRecords = allClassifiedRecords;
+    
+    if (filterValue !== 'all') {
+        const patientsWithAlert = new Set();
+        
+        if (filterValue === 'red') {
+            allClassifiedRecords.forEach(r => {
+                if (r.colorClass === 'red') {
+                    patientsWithAlert.add(r.rutPaciente);
                 }
-                
-                filteredRecords = allClassifiedRecords.filter(r => patientsWithAlert.has(r.rutPaciente));
-            }
-            
-            displayResults(filteredRecords);
+            });
+        } else if (filterValue === 'yellow') {
+            allClassifiedRecords.forEach(r => {
+                if (r.colorClass === 'yellow') {
+                    patientsWithAlert.add(r.rutPaciente);
+                }
+            });
+        } else if (filterValue === 'red-yellow') {
+            allClassifiedRecords.forEach(r => {
+                if (r.colorClass === 'red' || r.colorClass === 'yellow') {
+                    patientsWithAlert.add(r.rutPaciente);
+                }
+            });
         }
+        
+        filteredRecords = allClassifiedRecords.filter(r => patientsWithAlert.has(r.rutPaciente));
+    }
+    
+    displayResults(filteredRecords);
+    
+    // Restore checkbox states
+    checkedIds.forEach(id => {
+        const checkbox = document.querySelector(`#tableBody input[data-id="${id}"]`);
+        if (checkbox) {
+            checkbox.checked = true;
+        }
+    });
+}
         function syncCheckboxes(checkbox) {
         const dataId = checkbox.getAttribute('data-id');
         const isChecked = checkbox.checked;
