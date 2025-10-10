@@ -985,15 +985,17 @@
         filteredRecords = allClassifiedRecords.filter(r => patientsWithAlert.has(r.rutPaciente));
     }
     
-    displayResults(filteredRecords);
+displayResults(filteredRecords);
     
-    // Restore checkbox states
-    checkedIds.forEach(id => {
-        const checkbox = document.querySelector(`#tableBody input[data-id="${id}"]`);
-        if (checkbox) {
-            checkbox.checked = true;
-        }
-    });
+    // Restore checkbox states after DOM updates
+    setTimeout(() => {
+        checkedIds.forEach(id => {
+            const checkbox = document.querySelector(`#tableBody input[data-id="${id}"]`);
+            if (checkbox) {
+                checkbox.checked = true;
+            }
+        });
+    }, 0);
 }
         function syncCheckboxes(checkbox) {
         const dataId = checkbox.getAttribute('data-id');
