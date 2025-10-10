@@ -948,10 +948,10 @@
             console.log('BEFORE displayCompleteList - first 3 records:', completeOriginalData.slice(0, 3));
         }
         
-        function applyColorFilter() {
-    // Save current checkbox states
+        unction applyColorFilter() {
+    // Save current checkbox states from BOTH tables
     const checkedIds = new Set();
-    document.querySelectorAll('#tableBody .reintervencion-check:checked').forEach(cb => {
+    document.querySelectorAll('.reintervencion-check:checked').forEach(cb => {
         checkedIds.add(cb.getAttribute('data-id'));
     });
     console.log('Saved checked IDs:', Array.from(checkedIds));
@@ -989,16 +989,15 @@
 displayResults(filteredRecords);
     
     // Restore checkbox states after DOM updates
-     setTimeout(() => {
+    setTimeout(() => {
         console.log('Attempting to restore:', Array.from(checkedIds));
-        console.log('Available checkboxes:', document.querySelectorAll('#tableBody input[data-id]').length);
+        console.log('Available checkboxes:', document.querySelectorAll('input[data-id]').length);
         checkedIds.forEach(id => {
-            const checkbox = document.querySelector(`#tableBody input[data-id="${id}"]`);
-            console.log('Looking for', id, 'found:', !!checkbox);
-            if (checkbox) {
+            // Restore in BOTH tables
+            document.querySelectorAll(`input[data-id="${id}"]`).forEach(checkbox => {
+                console.log('Restoring', id, 'in', checkbox.closest('table').id);
                 checkbox.checked = true;
-                console.log('Checked:', id);
-            }
+            });
         });
     }, 10);
 }
