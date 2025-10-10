@@ -954,7 +954,8 @@
     document.querySelectorAll('#tableBody .reintervencion-check:checked').forEach(cb => {
         checkedIds.add(cb.getAttribute('data-id'));
     });
-    
+    console.log('Saved checked IDs:', Array.from(checkedIds));
+            
     const filterValue = document.getElementById('colorFilter').value;
     
     let filteredRecords = allClassifiedRecords;
@@ -989,6 +990,7 @@ displayResults(filteredRecords);
     
     // Restore checkbox states after DOM updates
     setTimeout(() => {
+        console.log('Attempting to restore:', Array.from(checkedIds));
         checkedIds.forEach(id => {
             const checkbox = document.querySelector(`#tableBody input[data-id="${id}"]`);
             if (checkbox) {
