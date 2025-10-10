@@ -405,18 +405,27 @@
         </div>
         
         <div id="resultsSection" class="results-section" style="display: none;">
+            <div style="margin-bottom: 20px; display: flex; gap: 15px; align-items: center;">
+                <label style="font-weight: 600; color: #495057;">Filtrar pacientes:</label>
+                <select id="colorFilter" onchange="applyColorFilter()" style="padding: 8px 12px; border: 2px solid #dee2e6; border-radius: 6px; font-size: 14px; cursor: pointer;">
+                    <option value="all">Todos los pacientes</option>
+                    <option value="red">🔴 Pacientes con alerta roja</option>
+                    <option value="yellow">🟡 Pacientes con alerta amarilla</option>
+                    <option value="red-yellow">🔴🟡 Pacientes con alerta roja o amarilla</option>
+                </select>
+            </div>
             <div class="table-wrapper">
                 <table id="resultsTable">
                     <thead>
                         <tr>
-                            <th>RUT Paciente</th>
-                            <th>Nombre Paciente</th>
                             <th>ID Ingreso</th>
                             <th>ID Protocolo</th>
-                            <th>Prestación</th>
+                            <th>RUT Paciente</th>
+                            <th>Nombre Paciente</th>
                             <th>Fecha Cirugía</th>
-                            <th>Reintervención</th>
-                            <th>Motivo</th>
+                            <th>Estado</th>
+                            <th>Cód. Prestación</th>
+                            <th>Prestación</th>
                             <th>RUT Cirujano</th>
                             <th>Nombre Cirujano</th>
                             <th>ID Paciente</th>
@@ -455,11 +464,16 @@
             'LAMINECTOMIA DESCOMPRESIVA',
             'ADENOMA O CANCER PROSTATICO, RESECCION E',
             'IMPLANTE RESINCRONIZADOR DESFIBRILADOR',
+            'IMPLANTE RESINCRONIZADOR (CRT-P)',
             'INSTALACION CATETER RESERV SUB CUT QMT',
             'ANGIOPLASTIA INTRALUMINAL PERIFERICA PRO',
             'RESECCION AMPLIA DE TUMOR MALIGNO Y DISECCION GANGLIONAR',
             'ABLACION CON CORRIENTE CONTINUA O CON RA',
-            'RINOPLASTIA Y/O SEPTOPLASTIA, CUALQUIER'
+            'RINOPLASTIA Y/O SEPTOPLASTIA, CUALQUIER',
+            'PROCURAMIENTO CORAZON/PULMON/VALVULAS',
+            'PROCURAMIENTO RIÑONES',
+            'PROCURAMIENTO CORNEAS',
+            'RESECCION ENDOSCOPICA DE CANCER VESICAL'
         ];
         
         let CIRUGIAS_AMARILLA = [
@@ -477,6 +491,7 @@
         
         let workbook = null;
         let rawData = [];
+        let allClassifiedRecords = [];
         
         document.getElementById('excelFile').addEventListener('change', function(e) {
             const file = e.target.files[0];
@@ -586,12 +601,15 @@
             }
             
             if (typeof dateStr === 'string') {
-                const parts = dateStr.split('/');
-                if (parts.length === 3) {
+                const parts = dateStr.split(/[\/\s:]/);
+                if (parts.length >= 3) {
                     const day = parseInt(parts[0]);
                     const month = parseInt(parts[1]) - 1;
                     const year = parts[2].length === 2 ? 2000 + parseInt(parts[2]) : parseInt(parts[2]);
-                    return new Date(year, month, day);
+                    const hour = parts[3] ? parseInt(parts[3]) : 0;
+                    const minute = parts[4] ? parseInt(parts[4]) : 0;
+                    const second = parts[5] ? parseInt(parts[5]) : 0;
+                    return new Date(year, month, day, hour, minute, second);
                 }
             }
             
@@ -625,15 +643,15 @@
                 const idProtocolo = row[1];
                 const rutPaciente = row[2];
                 const paciente = row[3];
-                const prestacion = row[4];
-                const fechaCirugia = row[5];
-                const reintervencion = row[6];
-                const motivo = row[7];
-                const rut1erCir = row[8];
-                const nombre1erCir = row[9];
+                const fechaCirugia = row[4];
+                const estado = row[5];
+                const codPrestacion = row[6];
+                const prestacion = row[7];
+                const rutCirujano = row[8];
+                const nombreCirujano = row[9];
                 const idPaciente = row[10];
                 
-                if (!rutPaciente || !fechaCirugia) continue;
+                if (!idIngreso) continue;
                 
                 totalRecords++;
                 
@@ -644,13 +662,13 @@
                     idProtocolo,
                     rutPaciente,
                     paciente,
-                    prestacion,
                     fechaCirugia,
                     fechaDate,
-                    reintervencion,
-                    motivo,
-                    rut1erCir,
-                    nombre1erCir,
+                    estado,
+                    codPrestacion,
+                    prestacion,
+                    rutCirujano,
+                    nombreCirujano,
                     idPaciente
                 });
             }
@@ -692,24 +710,33 @@
             Object.entries(patientGroups).forEach(([rut, records]) => {
                 records.sort((a, b) => a.fechaDate - b.fechaDate);
                 
-                const hasLastMonth = records.some(r => getYearMonth(r.fechaDate) === lastMonth);
+                const surgeriesInLastMonth = records.filter(r => getYearMonth(r.fechaDate) === lastMonth);
                 
-                if (!hasLastMonth) {
+                if (surgeriesInLastMonth.length === 0) {
                     removedNoMonth += records.length;
                     return;
                 }
                 
-                const firstInLastMonth = records.find(r => getYearMonth(r.fechaDate) === lastMonth);
+                const validSurgeries = new Set();
                 
-                records.forEach(record => {
-                    const daysDiff = Math.floor((firstInLastMonth.fechaDate - record.fechaDate) / (1000 * 60 * 60 * 24));
-                    
-                    if (daysDiff <= 30) {
-                        filteredRecords.push(record);
-                    } else {
-                        removedDays++;
-                    }
+                surgeriesInLastMonth.forEach(referenceSurgery => {
+                    records.forEach(record => {
+                        const daysDiff = Math.floor((referenceSurgery.fechaDate - record.fechaDate) / (1000 * 60 * 60 * 24));
+                        
+                        if (daysDiff >= 0 && daysDiff <= 30) {
+                            validSurgeries.add(record);
+                        }
+                    });
                 });
+                
+                const validSurgeriesArray = Array.from(validSurgeries);
+                
+                if (validSurgeriesArray.length >= 2) {
+                    filteredRecords.push(...validSurgeriesArray);
+                    removedDays += records.length - validSurgeriesArray.length;
+                } else {
+                    removedNoMonth += records.length;
+                }
             });
             
             filteredRecords.sort((a, b) => {
@@ -776,8 +803,44 @@
             document.getElementById('configSection').style.display = 'block';
             document.getElementById('resultsSection').style.display = 'block';
             
+            allClassifiedRecords = classifiedRecords;
+            
             updateListDisplay();
             displayResults(classifiedRecords);
+        }
+        
+        function applyColorFilter() {
+            const filterValue = document.getElementById('colorFilter').value;
+            
+            let filteredRecords = allClassifiedRecords;
+            
+            if (filterValue !== 'all') {
+                const patientsWithAlert = new Set();
+                
+                if (filterValue === 'red') {
+                    allClassifiedRecords.forEach(r => {
+                        if (r.colorClass === 'red') {
+                            patientsWithAlert.add(r.rutPaciente);
+                        }
+                    });
+                } else if (filterValue === 'yellow') {
+                    allClassifiedRecords.forEach(r => {
+                        if (r.colorClass === 'yellow') {
+                            patientsWithAlert.add(r.rutPaciente);
+                        }
+                    });
+                } else if (filterValue === 'red-yellow') {
+                    allClassifiedRecords.forEach(r => {
+                        if (r.colorClass === 'red' || r.colorClass === 'yellow') {
+                            patientsWithAlert.add(r.rutPaciente);
+                        }
+                    });
+                }
+                
+                filteredRecords = allClassifiedRecords.filter(r => patientsWithAlert.has(r.rutPaciente));
+            }
+            
+            displayResults(filteredRecords);
         }
         
         function displayResults(records) {
@@ -805,20 +868,20 @@
                 const formatDate = (dateStr) => {
                     const date = parseDate(dateStr);
                     if (!date) return dateStr || '';
-                    return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
+                    return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
                 };
                 
                 tr.innerHTML = `
-                    <td>${record.rutPaciente || ''}</td>
-                    <td>${record.paciente || ''}</td>
                     <td>${record.idIngreso || ''}</td>
                     <td>${record.idProtocolo || ''}</td>
-                    <td>${record.prestacion || ''}</td>
+                    <td>${record.rutPaciente || ''}</td>
+                    <td>${record.paciente || ''}</td>
                     <td>${formatDate(record.fechaCirugia)}</td>
-                    <td>${record.reintervencion || ''}</td>
-                    <td>${record.motivo || ''}</td>
-                    <td>${record.rut1erCir || ''}</td>
-                    <td>${record.nombre1erCir || ''}</td>
+                    <td>${record.estado || ''}</td>
+                    <td>${record.codPrestacion || ''}</td>
+                    <td>${record.prestacion || ''}</td>
+                    <td>${record.rutCirujano || ''}</td>
+                    <td>${record.nombreCirujano || ''}</td>
                     <td>${record.idPaciente || ''}</td>
                 `;
                 
