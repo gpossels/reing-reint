@@ -610,6 +610,7 @@
         let workbook = null;
         let rawData = [];
         let allClassifiedRecords = [];
+        let completeOriginalData = [];
         
         document.getElementById('excelFile').addEventListener('change', function(e) {
             const file = e.target.files[0];
@@ -801,7 +802,7 @@
             }
             
             document.getElementById('totalRecords').textContent = totalRecords;
-            
+            completeOriginalData = rawData.map(r => ({...r}));
             processData(rawData);
         }
         
@@ -934,7 +935,7 @@
             
             updateListDisplay();
             displayResults(classifiedRecords);
-            displayCompleteList(rawData);
+            displayCompleteList(completeOriginalData);
         }
         
         function applyColorFilter() {
