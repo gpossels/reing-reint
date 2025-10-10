@@ -1024,6 +1024,7 @@
             });
         }
     function displayCompleteList(records) {
+    console.log('displayCompleteList received records:', records.length);
     const tbody = document.getElementById('completeTableBody');
     tbody.innerHTML = '';
     
@@ -1038,7 +1039,7 @@
         if (!b.fechaDate) return -1;
         return a.fechaDate - b.fechaDate;
     });
-    
+    console.log('sortedRecords length:', sortedRecords.length);
     let currentRut = null;
     
     sortedRecords.forEach(record => {
