@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analizador de Reingresos Hospitalarios</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        
+        .upload-section {
+            padding: 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .file-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .file-input-wrapper label {
+            font-weight: 600;
+            color: #495057;
+            min-width: 120px;
+        }
+        
+        input[type="file"] {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #dee2e6;
+            border-radius: 6px;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="file"]:hover {
+            border-color: #667eea;
+        }
+        
+        select {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #dee2e6;
+            border-radius: 6px;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.3s;
+            font-size: 14px;
+        }
+        
+        select:hover:not(:disabled) {
+            border-color: #667eea;
+        }
+        
+        select:disabled {
+            background: #e9ecef;
+            cursor: not-allowed;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 15px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .stats {
+            padding: 20px 30px;
+            background: #e9ecef;
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .stat-item {
+            flex: 1;
+            min-width: 150px;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #6c757d;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #495057;
+        }
+        
+        .config-section {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+        }
+        
+        .config-section h3 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #495057;
+        }
+        
+        .config-group {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .config-group h4 {
+            font-size: 14px;
+            margin-bottom: 10px;
+            color: #667eea;
+            font-weight: 600;
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .input-group input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .btn-small {
+            padding: 8px 15px;
+            font-size: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .btn-small:hover {
+            transform: translateY(-1px);
+        }
+        
+        .btn-remove {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 11px;
+            margin-left: 5px;
+        }
+        
+        .btn-remove:hover {
+            background: #c82333;
+        }
+        
+        .list-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .list-item {
+            background: #e9ecef;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .list-item.verde {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .list-item.amarillo {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .results-section {
+            padding: 30px;
+            overflow-x: auto;
+        }
+        
+        .table-wrapper {
+            overflow-x: auto;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        
+        thead {
+            background: #495057;
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        th {
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+        
+        td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        tbody tr {
+            transition: background-color 0.2s;
+        }
+        
+        tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .highlight-yellow {
+            background-color: #fff3cd !important;
+        }
+        
+        .highlight-yellow:hover {
+            background-color: #ffe69c !important;
+        }
+        
+        .highlight-green {
+            background-color: #d4edda !important;
+        }
+        
+        .highlight-green:hover {
+            background-color: #c3e6cb !important;
+        }
+        
+        .patient-group {
+            border-top: 3px solid #667eea;
+        }
+        
+        .legend {
+            padding: 20px 30px;
+            background: #fff3cd;
+            border-top: 1px solid #dee2e6;
+        }
+        
+        .legend h3 {
+            font-size: 14px;
+            margin-bottom: 10px;
+            color: #856404;
+        }
+        
+        .legend ul {
+            list-style: none;
+            font-size: 12px;
+            color: #856404;
+        }
+        
+        .legend li {
+            padding: 3px 0;
+        }
+        
+        .legend li:before {
+            content: "• ";
+            font-weight: bold;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏥 Analizador de Reingresos Hospitalarios</h1>
+            <p>Detección de reingresos no planificados en los últimos 30 días</p>
+        </div>
+        
+        <div class="upload-section">
+            <div class="file-input-wrapper">
+                <label for="excelFile">Archivo Excel:</label>
+                <input type="file" id="excelFile" accept=".xlsx,.xls" />
+            </div>
+            <div class="file-input-wrapper">
+                <label for="monthSelect">Mes a analizar:</label>
+                <select id="monthSelect" disabled>
+                    <option value="">Seleccione un mes...</option>
+                </select>
+            </div>
+            <button class="btn" id="analyzeBtn" disabled>Analizar Datos</button>
+        </div>
+        
+        <div id="statsSection" style="display: none;" class="stats">
+            <div class="stat-item">
+                <div class="stat-label">Total Registros</div>
+                <div class="stat-value" id="totalRecords">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Registros Válidos</div>
+                <div class="stat-value" id="validRecords">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Pacientes Únicos</div>
+                <div class="stat-value" id="uniquePatients">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Eliminados (>30 días)</div>
+                <div class="stat-value" id="removedDays">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Eliminados (Otros)</div>
+                <div class="stat-value" id="removedOther">0</div>
+            </div>
+        </div>
+        
+        <div id="configSection" style="display: none;" class="config-section">
+            <h3>⚙️ Configuración de Alertas</h3>
+            
+            <div class="config-group">
+                <h4>🟢 Agregar Tratante Verde</h4>
+                <div class="input-group">
+                    <input type="text" id="inputTratanteVerde" placeholder="Nombre del tratante (ej: JUAN PEREZ LOPEZ)">
+                    <button class="btn-small" onclick="addTratanteVerde()">Agregar</button>
+                </div>
+                <div class="list-items" id="listTratantesVerdes"></div>
+            </div>
+            
+            <div class="config-group">
+                <h4>🟡 Agregar Tratante Amarillo</h4>
+                <div class="input-group">
+                    <input type="text" id="inputTratanteAmarillo" placeholder="Nombre del tratante (ej: MARIA GARCIA LOPEZ)">
+                    <button class="btn-small" onclick="addTratanteAmarillo()">Agregar</button>
+                </div>
+                <div class="list-items" id="listTratantesAmarillos"></div>
+            </div>
+            
+            <div class="config-group">
+                <h4>🟡 Agregar Unidad Amarillo</h4>
+                <div class="input-group">
+                    <input type="text" id="inputUnidadAmarillo" placeholder="Nombre de la unidad (ej: UCI PEDIATRICA)">
+                    <button class="btn-small" onclick="addUnidadAmarillo()">Agregar</button>
+                </div>
+                <div class="list-items" id="listUnidadesAmarillos"></div>
+            </div>
+            
+            <button class="btn" onclick="reAnalyze()" style="width: 100%;">🔄 Re-analizar con Nuevas Configuraciones</button>
+        </div>
+        
+        <div id="resultsSection" class="results-section" style="display: none;">
+            <div class="table-wrapper">
+                <table id="resultsTable">
+                    <thead>
+                        <tr>
+                            <th>RUT</th>
+                            <th>Nombre Paciente</th>
+                            <th>Edad</th>
+                            <th>Sexo</th>
+                            <th>ID Ingreso</th>
+                            <th>Fecha Ingreso</th>
+                            <th>Fecha Egreso</th>
+                            <th>Fecha Reingreso</th>
+                            <th>Días</th>
+                            <th>Diagnóstico</th>
+                            <th>Unidad</th>
+                            <th>Tratante</th>
+                            <th>ID Reingreso</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const DIAGNOSTICOS_ELIMINAR = [
+            'MUCOPOLISACARIDOSIS',
+            'PROCEDIMIENTO MEDICO NO ESPECIFICADO',
+            'TRANSFUSION DE SANGRE, SIN DIAGNOSTICO INFORMADO'
+        ];
+        
+        const UNIDADES_ELIMINAR = [
+            'UNIDAD HOSPITALIZACION TRANSITORIA'
+        ];
+        
+        let UNIDADES_ALERTA_AMARILLA = [
+            'MEDICO QUIRURGICO 5 TORRE C',
+            'UCI ADULTO TORRE C'
+        ];
+        
+        const TRATANTES_ELIMINAR = [
+            'RODRIGO IGLESIS GUILLARD'
+        ];
+        
+        let TRATANTES_ALERTA = [
+            'VALENTINA FERNANDEZ MORALES',
+            'OSCAR STORME CABRERA',
+            'CRISTOBAL SUAZO LOPEZ',
+            'CRISTIAN GALLARDO VILLALOBOS',
+            'JOAQUIN IRARRAZAVAL ESPINOSA',
+            'MATIAS GUAJARDO BEROIZA',
+            'JAVIER GATICA CARBONELL',
+            'JOSE FUENZALIDA SCHWERTER',
+            'CAMILA ONETTO CARVALLO',
+            'TAMARA DAIRE ROJAS',
+            'GUILLERMO DE LA CUADRA FERNANDEZ',
+            'PABLO PIZZI LAZO',
+            'VICTOR AVILLO CAROCA',
+            'HERNAN GUZMAN CESPEDES',
+            'GUILLERMO PRENAFETA PEDEMONTE',
+            'JAIME CARRASCO TOLEDO',
+            'CRISTIAN ACEVEDO CASTILLO',
+            'NICOLAS HASBUN SCHEEL'
+        ];
+        
+        let TRATANTES_VERDE = [
+            'MAURICIO RIVAS QUESADA',
+            'CLAUDIA GAMARGO GARATE',
+            'CHRISTOPHER TABILO HEAVEY',
+            'ERNESTO MATURANA LEIVA',
+            'HARRY MACIAS RODRIGUEZ',
+            'JUAN MIRANDA OLIVARES',
+            'GERSON PLAZA CONTRERAS',
+            'MANUEL TORRES ULLOA',
+            'FABIAN RUIZ ZAMORANO',
+            'ALVARO IBARRA MONTANA'
+        ];
+        
+        let workbook = null;
+        
+        document.getElementById('excelFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    workbook = XLSX.read(e.target.result, { type: 'binary' });
+                    
+                    const monthSelect = document.getElementById('monthSelect');
+                    monthSelect.innerHTML = '<option value="">Seleccione un mes...</option>';
+                    
+                    workbook.SheetNames.forEach(sheetName => {
+                        const option = document.createElement('option');
+                        option.value = sheetName;
+                        option.textContent = sheetName;
+                        monthSelect.appendChild(option);
+                    });
+                    
+                    monthSelect.disabled = false;
+                    document.getElementById('analyzeBtn').disabled = true;
+                };
+                reader.readAsBinaryString(file);
+            }
+        });
+        
+        document.getElementById('monthSelect').addEventListener('change', function(e) {
+            document.getElementById('analyzeBtn').disabled = !e.target.value;
+        });
+        
+        document.getElementById('analyzeBtn').addEventListener('click', analyzeData);
+        
+        function addTratanteVerde() {
+            const input = document.getElementById('inputTratanteVerde');
+            const nombre = input.value.trim().toUpperCase();
+            if (nombre && !TRATANTES_VERDE.includes(nombre)) {
+                TRATANTES_VERDE.push(nombre);
+                input.value = '';
+                updateListDisplay();
+            }
+        }
+        
+        function addTratanteAmarillo() {
+            const input = document.getElementById('inputTratanteAmarillo');
+            const nombre = input.value.trim().toUpperCase();
+            if (nombre && !TRATANTES_ALERTA.includes(nombre)) {
+                TRATANTES_ALERTA.push(nombre);
+                input.value = '';
+                updateListDisplay();
+            }
+        }
+        
+        function addUnidadAmarillo() {
+            const input = document.getElementById('inputUnidadAmarillo');
+            const nombre = input.value.trim().toUpperCase();
+            if (nombre && !UNIDADES_ALERTA_AMARILLA.includes(nombre)) {
+                UNIDADES_ALERTA_AMARILLA.push(nombre);
+                input.value = '';
+                updateListDisplay();
+            }
+        }
+        
+        function removeTratanteVerde(nombre) {
+            const index = TRATANTES_VERDE.indexOf(nombre);
+            if (index > -1) {
+                TRATANTES_VERDE.splice(index, 1);
+                updateListDisplay();
+            }
+        }
+        
+        function removeTratanteAmarillo(nombre) {
+            const index = TRATANTES_ALERTA.indexOf(nombre);
+            if (index > -1) {
+                TRATANTES_ALERTA.splice(index, 1);
+                updateListDisplay();
+            }
+        }
+        
+        function removeUnidadAmarillo(nombre) {
+            const index = UNIDADES_ALERTA_AMARILLA.indexOf(nombre);
+            if (index > -1) {
+                UNIDADES_ALERTA_AMARILLA.splice(index, 1);
+                updateListDisplay();
+            }
+        }
+        
+        function updateListDisplay() {
+            const listVerdes = document.getElementById('listTratantesVerdes');
+            const listAmarillos = document.getElementById('listTratantesAmarillos');
+            const listUnidades = document.getElementById('listUnidadesAmarillos');
+            
+            if (listVerdes) {
+                listVerdes.innerHTML = TRATANTES_VERDE.map(t => 
+                    `<span class="list-item verde">${t}<button class="btn-remove" onclick="removeTratanteVerde('${t}')">×</button></span>`
+                ).join('');
+            }
+            
+            if (listAmarillos) {
+                listAmarillos.innerHTML = TRATANTES_ALERTA.map(t => 
+                    `<span class="list-item amarillo">${t}<button class="btn-remove" onclick="removeTratanteAmarillo('${t}')">×</button></span>`
+                ).join('');
+            }
+            
+            if (listUnidades) {
+                listUnidades.innerHTML = UNIDADES_ALERTA_AMARILLA.map(u => 
+                    `<span class="list-item amarillo">${u}<button class="btn-remove" onclick="removeUnidadAmarillo('${u}')">×</button></span>`
+                ).join('');
+            }
+            
+            updateLegend();
+        }
+        
+        function updateLegend() {
+            // Leyenda simplificada - las listas están en la sección de configuración
+        }
+        
+        function reAnalyze() {
+            if (workbook) {
+                analyzeData();
+            }
+        }
+        
+        function parseDate(dateStr) {
+            if (!dateStr) return null;
+            const parts = dateStr.split('/');
+            if (parts.length !== 3) return null;
+            const day = parseInt(parts[0]);
+            const month = parseInt(parts[1]) - 1;
+            const year = 2000 + parseInt(parts[2]);
+            return new Date(year, month, day);
+        }
+        
+        function getDaysDifference(fechaEgreso, fechaReing) {
+            const egreso = parseDate(fechaEgreso);
+            const reingreso = parseDate(fechaReing);
+            if (!egreso || !reingreso) return null;
+            const diffMs = reingreso - egreso;
+            return Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        }
+        
+        function normalizeText(text) {
+            if (!text) return '';
+            return text.toString().trim().toUpperCase();
+        }
+        
+        function analyzeData() {
+            const sheetName = document.getElementById('monthSelect').value;
+            
+            if (!sheetName) {
+                alert('Por favor seleccione un mes');
+                return;
+            }
+            
+            const sheet = workbook.Sheets[sheetName];
+            
+            if (!sheet) {
+                alert(`No se encontró la hoja "${sheetName}" en el archivo`);
+                return;
+            }
+            
+            const data = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null });
+            
+            let totalRecords = data.length - 1;
+            let removedDays = 0;
+            let removedOther = 0;
+            let validRecords = [];
+            
+            for (let i = 1; i < data.length; i++) {
+                const row = data[i];
+                
+                const rut = row[0];
+                const nombre = row[1];
+                const edad = row[2];
+                const sexo = row[3];
+                const idIngreso = row[4];
+                const fechaIngreso = row[5];
+                const fechaEgreso = row[6];
+                const fechaReing = row[7];
+                const diagnostico = row[10];
+                const unidad = row[14];
+                const tratante = row[16];
+                const idReingreso = row[18];
+                
+                if (!fechaEgreso || !fechaReing) continue;
+                
+                const dias = getDaysDifference(fechaEgreso, fechaReing);
+                
+                if (dias === null) continue;
+                
+                if (dias > 30) {
+                    removedDays++;
+                    continue;
+                }
+                
+                const diagnosticoNorm = normalizeText(diagnostico);
+                if (DIAGNOSTICOS_ELIMINAR.some(d => diagnosticoNorm.includes(normalizeText(d)))) {
+                    removedOther++;
+                    continue;
+                }
+                
+                const unidadNorm = normalizeText(unidad);
+                if (UNIDADES_ELIMINAR.some(u => normalizeText(u) === unidadNorm)) {
+                    removedOther++;
+                    continue;
+                }
+                
+                const tratanteNorm = normalizeText(tratante);
+                if (TRATANTES_ELIMINAR.some(t => normalizeText(t) === tratanteNorm)) {
+                    removedOther++;
+                    continue;
+                }
+                
+                const isAlerta = TRATANTES_ALERTA.some(t => normalizeText(t) === tratanteNorm);
+                const isUnidadAlerta = UNIDADES_ALERTA_AMARILLA.some(u => normalizeText(u) === unidadNorm);
+                const isTratanteVerde = TRATANTES_VERDE.some(t => normalizeText(t) === tratanteNorm);
+                
+                validRecords.push({
+                    rut,
+                    nombre,
+                    edad,
+                    sexo,
+                    idIngreso,
+                    fechaIngreso,
+                    fechaEgreso,
+                    fechaReing,
+                    dias,
+                    diagnostico,
+                    unidad,
+                    tratante,
+                    idReingreso,
+                    isAlerta: isAlerta || isUnidadAlerta,
+                    isTratanteVerde
+                });
+            }
+            
+            const patientGroups = {};
+            validRecords.forEach(record => {
+                if (!patientGroups[record.rut]) {
+                    patientGroups[record.rut] = [];
+                }
+                patientGroups[record.rut].push(record);
+            });
+            
+            const sortedPatients = Object.entries(patientGroups).sort((a, b) => {
+                const aRecords = a[1];
+                const bRecords = b[1];
+                
+                const aHasVerde = aRecords.some(r => r.isTratanteVerde || r.isOncologico);
+                const bHasVerde = bRecords.some(r => r.isTratanteVerde || r.isOncologico);
+                const aHasAmarillo = aRecords.some(r => r.isAlerta);
+                const bHasAmarillo = bRecords.some(r => r.isAlerta);
+                const aHasBlanco = aRecords.some(r => !r.isAlerta && !r.isTratanteVerde && !r.isOncologico);
+                const bHasBlanco = bRecords.some(r => !r.isAlerta && !r.isTratanteVerde && !r.isOncologico);
+                
+                const aSoloVerde = aHasVerde && !aHasAmarillo && !aHasBlanco;
+                const bSoloVerde = bHasVerde && !bHasAmarillo && !bHasBlanco;
+                
+                const aVerdeMasBlanco = aHasVerde && aHasBlanco && !aHasAmarillo;
+                const bVerdeMasBlanco = bHasVerde && bHasBlanco && !bHasAmarillo;
+                
+                const aSoloBlanco = !aHasVerde && !aHasAmarillo && aHasBlanco;
+                const bSoloBlanco = !bHasVerde && !bHasAmarillo && bHasBlanco;
+                
+                const aTieneAmarillo = aHasAmarillo;
+                const bTieneAmarillo = bHasAmarillo;
+                
+                if (aSoloVerde && !bSoloVerde) return -1;
+                if (!aSoloVerde && bSoloVerde) return 1;
+                
+                if (aVerdeMasBlanco && !bVerdeMasBlanco && !bSoloVerde) return -1;
+                if (!aVerdeMasBlanco && bVerdeMasBlanco && !aSoloVerde) return 1;
+                
+                if (aSoloBlanco && !bSoloBlanco && !bSoloVerde && !bVerdeMasBlanco) return -1;
+                if (!aSoloBlanco && bSoloBlanco && !aSoloVerde && !aVerdeMasBlanco) return 1;
+                
+                if (aTieneAmarillo && !bTieneAmarillo) return 1;
+                if (!aTieneAmarillo && bTieneAmarillo) return -1;
+                
+                return b[1].length - a[1].length;
+            });
+            
+            const sortedRecords = [];
+            sortedPatients.forEach(([rut, records]) => {
+                sortedRecords.push(...records);
+            });
+            
+            markOncologicoGroups(sortedRecords);
+            
+            displayResults(sortedRecords, totalRecords, removedDays, removedOther);
+        }
+        
+        function markOncologicoGroups(records) {
+            const patientDiagnostics = {};
+            
+            records.forEach(record => {
+                const unidadNorm = normalizeText(record.unidad);
+                if (unidadNorm === normalizeText('MEDICO QUIRURGICO ONCOLOGICO')) {
+                    const key = `${record.rut}_${normalizeText(record.diagnostico)}`;
+                    if (!patientDiagnostics[key]) {
+                        patientDiagnostics[key] = [];
+                    }
+                    patientDiagnostics[key].push(record);
+                }
+            });
+            
+            Object.values(patientDiagnostics).forEach(group => {
+                if (group.length > 1) {
+                    group.forEach(record => {
+                        record.isOncologico = true;
+                    });
+                }
+            });
+        }
+        
+        function displayResults(records, totalRecords, removedDays, removedOther) {
+            document.getElementById('totalRecords').textContent = totalRecords;
+            document.getElementById('validRecords').textContent = records.length;
+            document.getElementById('uniquePatients').textContent = new Set(records.map(r => r.rut)).size;
+            document.getElementById('removedDays').textContent = removedDays;
+            document.getElementById('removedOther').textContent = removedOther;
+            
+            document.getElementById('statsSection').style.display = 'flex';
+            document.getElementById('configSection').style.display = 'block';
+            document.getElementById('resultsSection').style.display = 'block';
+            
+            updateListDisplay();
+            
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            
+            let currentRut = null;
+            
+            records.forEach(record => {
+                const tr = document.createElement('tr');
+                
+                if (currentRut !== record.rut) {
+                    tr.classList.add('patient-group');
+                    currentRut = record.rut;
+                }
+                
+                if (record.isAlerta) {
+                    tr.classList.add('highlight-yellow');
+                } else if (record.isOncologico || record.isTratanteVerde) {
+                    tr.classList.add('highlight-green');
+                }
+                
+                tr.innerHTML = `
+                    <td>${record.rut || ''}</td>
+                    <td>${record.nombre || ''}</td>
+                    <td>${record.edad || ''}</td>
+                    <td>${record.sexo || ''}</td>
+                    <td>${record.idIngreso || ''}</td>
+                    <td>${record.fechaIngreso || ''}</td>
+                    <td>${record.fechaEgreso || ''}</td>
+                    <td>${record.fechaReing || ''}</td>
+                    <td><strong>${record.dias}</strong></td>
+                    <td>${record.diagnostico || ''}</td>
+                    <td>${record.unidad || ''}</td>
+                    <td>${record.tratante || ''}</td>
+                    <td>${record.idReingreso || ''}</td>
+                `;
+                
+                tbody.appendChild(tr);
+            });
+        }
+    </script>
+</body>
+</html>
