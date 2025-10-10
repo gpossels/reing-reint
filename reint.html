@@ -989,16 +989,18 @@
 displayResults(filteredRecords);
     
     // Restore checkbox states after DOM updates
-    setTimeout(() => {
+     setTimeout(() => {
         console.log('Attempting to restore:', Array.from(checkedIds));
+        console.log('Available checkboxes:', document.querySelectorAll('#tableBody input[data-id]').length);
         checkedIds.forEach(id => {
             const checkbox = document.querySelector(`#tableBody input[data-id="${id}"]`);
+            console.log('Looking for', id, 'found:', !!checkbox);
             if (checkbox) {
                 checkbox.checked = true;
+                console.log('Checked:', id);
             }
         });
-    }, 0);
-}
+    }, 10);
         function syncCheckboxes(checkbox) {
         const dataId = checkbox.getAttribute('data-id');
         const isChecked = checkbox.checked;
