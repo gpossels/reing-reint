@@ -624,12 +624,26 @@
         
         function parseDate(dateStr) {
             if (!dateStr) return null;
-            const parts = dateStr.split('/');
-            if (parts.length !== 3) return null;
-            const day = parseInt(parts[0]);
-            const month = parseInt(parts[1]) - 1;
-            const year = 2000 + parseInt(parts[2]);
-            return new Date(year, month, day);
+            
+            // Si es un número (Excel serial date)
+            if (typeof dateStr === 'number') {
+                // Convertir fecha serial de Excel a Date
+                const excelEpoch = new Date(1899, 11, 30);
+                const date = new Date(excelEpoch.getTime() + dateStr * 86400000);
+                return date;
+            }
+            
+            // Si es string en formato DD/MM/YY
+            if (typeof dateStr === 'string') {
+                const parts = dateStr.split('/');
+                if (parts.length !== 3) return null;
+                const day = parseInt(parts[0]);
+                const month = parseInt(parts[1]) - 1;
+                const year = 2000 + parseInt(parts[2]);
+                return new Date(year, month, day);
+            }
+            
+            return null;
         }
         
         function getDaysDifference(fechaEgreso, fechaReing) {
