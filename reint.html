@@ -707,6 +707,7 @@
         function reAnalyze() {
             if (rawData.length > 0) {
                 processData(rawData);
+                
             }
         }
         function toggleConfig(element) {
@@ -939,6 +940,8 @@
             updateListDisplay();
             displayResults(classifiedRecords);
             displayCompleteList(completeOriginalData);
+            console.log('BEFORE displayCompleteList - completeOriginalData length:', completeOriginalData.length);
+            console.log('BEFORE displayCompleteList - first 3 records:', completeOriginalData.slice(0, 3));
         }
         
         function applyColorFilter() {
