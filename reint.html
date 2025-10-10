@@ -772,7 +772,15 @@
         function analyzeData() {
             if (!workbook) return;
             
-            const sheetName = 'Exportar Hoja de Trabajo';
+            const possibleSheets = ['Exportar Hoja de Trabajo', 'MEDIC'];
+
+            // Find the first that exists in the workbook
+            const sheetName = possibleSheets.find(name => workbook.Sheets[name]);
+
+            if (!sheetName) {
+                throw new Error('No valid sheet found. Expected "Exportar Hoja de Trabajo" or "MEDIC".');
+            }
+            
             const sheet = workbook.Sheets[sheetName];
             const data = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null });
             
