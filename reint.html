@@ -518,6 +518,7 @@
                             <th>RUT Cirujano</th>
                             <th>Nombre Cirujano</th>
                             <th>ID Paciente</th>
+                            <th>Reintervención No Planificada</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody"></tbody>
@@ -546,6 +547,7 @@
                             <th>RUT Cirujano</th>
                             <th>Nombre Cirujano</th>
                             <th>ID Paciente</th>
+                            <th>Reintervención No Planificada</th>
                         </tr>
                     </thead>
                     <tbody id="completeTableBody"></tbody>
@@ -1019,6 +1021,7 @@
                     <td>${record.rutCirujano || ''}</td>
                     <td>${record.nombreCirujano || ''}</td>
                     <td>${record.idPaciente || ''}</td>
+                    <td style="text-align: center;"><input type="checkbox" /></td>
                 `;
                 
                 tbody.appendChild(tr);
@@ -1069,6 +1072,7 @@
             <td>${record.rutCirujano || ''}</td>
             <td>${record.nombreCirujano || ''}</td>
             <td>${record.idPaciente || ''}</td>
+            <td style="text-align: center;"><input type="checkbox" /></td>
         `;
         
         tbody.appendChild(tr);
