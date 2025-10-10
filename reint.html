@@ -757,8 +757,8 @@
         function analyzeData() {
             if (!workbook) return;
             
-            const sheetName = workbook.SheetNames.find(name => name.includes('Exportar')) || workbook.SheetNames[0];
             const sheetName = 'Exportar Hoja de Trabajo';
+            const sheet = workbook.Sheets[sheetName];
             const data = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null });
             
             rawData = [];
@@ -800,8 +800,8 @@
                     idPaciente
                 });
             }
+            
             console.log('Total rawData after loop:', rawData.length);
-            document.getElementById('totalRecords').textContent = totalRecords;
             document.getElementById('totalRecords').textContent = totalRecords;
             completeOriginalData = rawData.map(r => ({...r}));
             console.log('rawData length:', rawData.length);
