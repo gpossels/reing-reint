@@ -725,29 +725,39 @@
         }
         
         function parseDate(dateStr) {
-            if (!dateStr) return null;
-            
-            if (typeof dateStr === 'number') {
-                const excelEpoch = new Date(1899, 11, 30);
-                const date = new Date(excelEpoch.getTime() + dateStr * 86400000);
-                return date;
-            }
-            
-            if (typeof dateStr === 'string') {
-                const parts = dateStr.split(/[\/\s:]/);
-                if (parts.length >= 3) {
-                    const day = parseInt(parts[0]);
-                    const month = parseInt(parts[1]) - 1;
-                    const year = parts[2].length === 2 ? 2000 + parseInt(parts[2]) : parseInt(parts[2]);
-                    const hour = parts[3] ? parseInt(parts[3]) : 0;
-                    const minute = parts[4] ? parseInt(parts[4]) : 0;
-                    const second = parts[5] ? parseInt(parts[5]) : 0;
-                    return new Date(year, month, day, hour, minute, second);
-                }
-            }
-            
-            return null;
+    if (!dateStr) return null;
+
+    // Handle Excel numeric serials
+    if (typeof dateStr === 'number') {
+        const excelEpoch = new Date(1899, 11, 30);
+        return new Date(excelEpoch.getTime() + dateStr * 86400000);
+    }
+
+    if (typeof dateStr === 'string') {
+        // Normalize both '-' and '/' separators to '/'
+        const normalized = dateStr.replace(/-/g, '/').trim();
+
+        // Split by /, space, or :
+        const parts = normalized.split(/[\/\s:]/);
+
+        if (parts.length >= 3) {
+            const day = parseInt(parts[0]);
+            const month = parseInt(parts[1]) - 1;
+            const year = parts[2].length === 2 ? 2000 + parseInt(parts[2]) : parseInt(parts[2]);
+            const hour = parts[3] ? parseInt(parts[3]) : 0;
+            const minute = parts[4] ? parseInt(parts[4]) : 0;
+            const second = parts[5] ? parseInt(parts[5]) : 0;
+
+            const date = new Date(year, month, day, hour, minute, second);
+
+            // Return only if valid
+            return isNaN(date.getTime()) ? null : date;
         }
+    }
+
+    return null;
+}
+
         
         function normalizeText(text) {
             if (!text) return '';
