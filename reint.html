@@ -319,6 +319,83 @@
         .patient-group {
             border-top: 3px solid #667eea;
         }
+        .config-group h4 {
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.config-group h4:hover {
+    opacity: 0.8;
+}
+
+.config-group h4::before {
+    content: '▼';
+    font-size: 12px;
+    transition: transform 0.3s;
+}
+
+.config-group.collapsed h4::before {
+    transform: rotate(-90deg);
+}
+
+.config-content {
+    max-height: 500px;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+}
+
+.config-group.collapsed .config-content {
+    max-height: 0;
+}
+
+.collapsible-section {
+    margin-bottom: 20px;
+}
+
+.collapsible-header {
+    background: #495057;
+    color: white;
+    padding: 15px 20px;
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    font-size: 16px;
+    border-radius: 6px;
+    transition: background-color 0.2s;
+}
+
+.collapsible-header:hover {
+    background: #5a6268;
+}
+
+.collapsible-header::before {
+    content: '▼';
+    font-size: 12px;
+    transition: transform 0.3s;
+}
+
+.collapsible-section.collapsed .collapsible-header::before {
+    transform: rotate(-90deg);
+}
+
+.collapsible-content {
+    max-height: 600px;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+}
+
+.collapsible-section.collapsed .collapsible-content {
+    max-height: 0;
+}
+
+
+        
     </style>
 </head>
 <body>
@@ -374,29 +451,35 @@
         <div id="configSection" style="display: none;" class="config-section">
             <h3>⚙️ Configuración de Alertas</h3>
             
-            <div class="config-group verde">
-                <h4>🟢 Agregar Cirugía Verde (Planificada/Esperada)</h4>
-                <div class="input-group">
-                    <input type="text" id="inputCirugiaVerde" placeholder="Nombre de la prestación">
-                    <button class="btn-small" onclick="addCirugiaVerde()">Agregar</button>
+            <div class="config-group verde collapsed">
+                <h4 onclick="toggleConfig(this)">🟢 Agregar Cirugía Verde (Planificada/Esperada)</h4>
+                <div class="config-content">
+                    <div class="input-group">
+                        <input type="text" id="inputCirugiaVerde" placeholder="Nombre de la prestación">
+                        <button class="btn-small" onclick="addCirugiaVerde()">Agregar</button>
+                    </div>
                 </div>
                 <div class="list-items" id="listCirugiasVerdes"></div>
             </div>
             
-            <div class="config-group amarillo">
-                <h4>🟡 Agregar Cirugía Amarilla (Alerta Moderada)</h4>
-                <div class="input-group">
-                    <input type="text" id="inputCirugiaAmarilla" placeholder="Nombre de la prestación">
-                    <button class="btn-small" onclick="addCirugiaAmarilla()">Agregar</button>
+            <div class="config-group amarillo collapsed">
+                <h4 onclick="toggleConfig(this)">🟡 Agregar Cirugía Amarilla (Alerta Moderada)</h4>
+                <div class="config-content">
+                    <div class="input-group">
+                        <input type="text" id="inputCirugiaAmarilla" placeholder="Nombre de la prestación">
+                        <button class="btn-small" onclick="addCirugiaAmarilla()">Agregar</button>
+                    </div>
                 </div>
                 <div class="list-items" id="listCirugiasAmarillas"></div>
             </div>
             
-            <div class="config-group rojo">
-                <h4>🔴 Agregar Cirugía Roja (Alerta Crítica)</h4>
-                <div class="input-group">
-                    <input type="text" id="inputCirugiaRoja" placeholder="Nombre de la prestación">
-                    <button class="btn-small" onclick="addCirugiaRoja()">Agregar</button>
+            <div class="config-group rojo collapsed">
+                <h4 onclick="toggleConfig(this)">🔴 Agregar Cirugía Roja (Alerta Crítica)</h4>
+                <div class="config-content">
+                    <div class="input-group">
+                        <input type="text" id="inputCirugiaRoja" placeholder="Nombre de la prestación">
+                        <button class="btn-small" onclick="addCirugiaRoja()">Agregar</button>
+                    </div>
                 </div>
                 <div class="list-items" id="listCirugiasRojas"></div>
             </div>
@@ -405,7 +488,12 @@
         </div>
         
         <div id="resultsSection" class="results-section" style="display: none;">
-            <div style="margin-bottom: 20px; display: flex; gap: 15px; align-items: center;">
+    <div class="collapsible-section collapsed">
+        <div class="collapsible-header" onclick="toggleSection(this)">
+            📋 Listado Filtrado (Reintervenciones)
+        </div>
+        <div class="collapsible-content">
+            <div style="margin: 20px 0; display: flex; gap: 15px; align-items: center;">
                 <label style="font-weight: 600; color: #495057;">Filtrar pacientes:</label>
                 <select id="colorFilter" onchange="applyColorFilter()" style="padding: 8px 12px; border: 2px solid #dee2e6; border-radius: 6px; font-size: 14px; cursor: pointer;">
                     <option value="all">Todos los pacientes</option>
@@ -435,6 +523,36 @@
                 </table>
             </div>
         </div>
+    </div>
+    
+    <div class="collapsible-section collapsed">
+        <div class="collapsible-header" onclick="toggleSection(this)">
+            📄 Listado Completo (Sin Filtros)
+        </div>
+        <div class="collapsible-content">
+            <div class="table-wrapper">
+                <table id="completeTable">
+                    <thead>
+                        <tr>
+                            <th>ID Ingreso</th>
+                            <th>ID Protocolo</th>
+                            <th>RUT Paciente</th>
+                            <th>Nombre Paciente</th>
+                            <th>Fecha Cirugía</th>
+                            <th>Estado</th>
+                            <th>Cód. Prestación</th>
+                            <th>Prestación</th>
+                            <th>RUT Cirujano</th>
+                            <th>Nombre Cirujano</th>
+                            <th>ID Paciente</th>
+                        </tr>
+                    </thead>
+                    <tbody id="completeTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
     </div>
 
     <script>
@@ -589,6 +707,15 @@
             if (rawData.length > 0) {
                 processData(rawData);
             }
+        }
+        function toggleConfig(element) {
+            const configGroup = element.parentElement;
+            configGroup.classList.toggle('collapsed');
+        }
+        
+        function toggleSection(element) {
+            const section = element.parentElement;
+            section.classList.toggle('collapsed');
         }
         
         function parseDate(dateStr) {
@@ -807,6 +934,7 @@
             
             updateListDisplay();
             displayResults(classifiedRecords);
+            displayCompleteList(rawData);
         }
         
         function applyColorFilter() {
@@ -888,6 +1016,56 @@
                 tbody.appendChild(tr);
             });
         }
+    function displayCompleteList(records) {
+    const tbody = document.getElementById('completeTableBody');
+    tbody.innerHTML = '';
+    
+    const sortedRecords = [...records].sort((a, b) => {
+        const rutA = a.rutPaciente || '';
+        const rutB = b.rutPaciente || '';
+        if (rutA !== rutB) {
+            return rutA.localeCompare(rutB);
+        }
+        if (!a.fechaDate && !b.fechaDate) return 0;
+        if (!a.fechaDate) return 1;
+        if (!b.fechaDate) return -1;
+        return a.fechaDate - b.fechaDate;
+    });
+    
+    let currentRut = null;
+    
+    sortedRecords.forEach(record => {
+        const tr = document.createElement('tr');
+        
+        if (currentRut !== record.rutPaciente) {
+            tr.classList.add('patient-group');
+            currentRut = record.rutPaciente;
+        }
+        
+        const formatDate = (dateStr) => {
+            const date = parseDate(dateStr);
+            if (!date) return dateStr || '';
+            return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+        };
+        
+        tr.innerHTML = `
+            <td>${record.idIngreso || ''}</td>
+            <td>${record.idProtocolo || ''}</td>
+            <td>${record.rutPaciente || ''}</td>
+            <td>${record.paciente || ''}</td>
+            <td>${formatDate(record.fechaCirugia)}</td>
+            <td>${record.estado || ''}</td>
+            <td>${record.codPrestacion || ''}</td>
+            <td>${record.prestacion || ''}</td>
+            <td>${record.rutCirujano || ''}</td>
+            <td>${record.nombreCirujano || ''}</td>
+            <td>${record.idPaciente || ''}</td>
+        `;
+        
+        tbody.appendChild(tr);
+    });
+}
+    
     </script>
 </body>
 </html>
