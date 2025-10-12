@@ -135,6 +135,52 @@
             overflow-x: auto;
         }
         
+        .collapsible-section {
+            margin-bottom: 20px;
+        }
+        
+        .collapsible-header {
+            background: #495057;
+            color: white;
+            padding: 15px 20px;
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            font-size: 16px;
+            border-radius: 6px;
+            transition: background-color 0.2s;
+        }
+        
+        .collapsible-header:hover {
+            background: #5a6268;
+        }
+        
+        .collapsible-header::before {
+            content: '▼';
+            font-size: 12px;
+            transition: transform 0.3s;
+        }
+        
+        .collapsible-section.collapsed .collapsible-header::before {
+            transform: rotate(-90deg);
+        }
+        
+        .collapsible-content {
+            max-height: 10000px;
+            overflow: visible;
+            transition: max-height 0.3s ease-out;
+            padding-top: 20px;
+        }
+        
+        .collapsible-section.collapsed .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            padding-top: 0;
+        }
+        
         .table-wrapper {
             overflow-x: auto;
             border: 1px solid #dee2e6;
@@ -191,34 +237,6 @@
             border-top: 3px solid #667eea;
         }
         
-        .legend {
-            padding: 20px 30px;
-            background: #fff3cd;
-            border-top: 1px solid #dee2e6;
-        }
-        
-        .legend h3 {
-            font-size: 14px;
-            margin-bottom: 10px;
-            color: #856404;
-        }
-        
-        .legend ul {
-            list-style: none;
-            font-size: 12px;
-            color: #856404;
-        }
-        
-        .legend li {
-            padding: 3px 0;
-        }
-        
-        .legend li:before {
-            content: "• ";
-            font-weight: bold;
-            margin-right: 5px;
-        }
-        
         .alert-box {
             background: #fff3cd;
             border-left: 4px solid #ffc107;
@@ -237,6 +255,26 @@
             color: #856404;
             font-size: 13px;
             margin: 0;
+        }
+        
+        .filter-section {
+            margin: 20px 0;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        
+        .filter-section label {
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .filter-section select {
+            padding: 8px 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -261,7 +299,7 @@
         
         <div id="statsSection" style="display: none;" class="stats">
             <div class="stat-item">
-                <div class="stat-label">Total Reingresos</div>
+                <div class="stat-label">Total Reingresos Cargados</div>
                 <div class="stat-value" id="totalReingresos">0</div>
             </div>
             <div class="stat-item">
@@ -269,48 +307,106 @@
                 <div class="stat-value" id="uniquePatients">0</div>
             </div>
             <div class="stat-item">
-                <div class="stat-label">Con Cirugía Asociada</div>
+                <div class="stat-label">Descartados (1 registro)</div>
+                <div class="stat-value" id="discardedSingle">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Descartados (Sin mes actual)</div>
+                <div class="stat-value" id="discardedNoMonth">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Reingresos Procesados</div>
+                <div class="stat-value" id="processedReingresos">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">🔴 Con Cirugía Asociada</div>
                 <div class="stat-value" id="conCirugia" style="color: #dc3545;">0</div>
             </div>
             <div class="stat-item">
                 <div class="stat-label">Sin Cirugía Asociada</div>
                 <div class="stat-value" id="sinCirugia">0</div>
             </div>
-            <div class="stat-item">
-                <div class="stat-label">Total Reintervenciones</div>
-                <div class="stat-value" id="totalReintervenciones">0</div>
-            </div>
         </div>
         
         <div id="resultsSection" class="results-section" style="display: none;">
-            <div class="alert-box">
-                <h4>📌 Leyenda de Colores</h4>
-                <p><strong style="color: #dc3545;">● Rojo:</strong> Paciente con cirugía no planificada asociada al reingreso (todas las filas del paciente se marcan en rojo)</p>
-                <p><strong>● Blanco:</strong> Reingreso sin cirugía asociada detectada</p>
+            <div class="collapsible-section collapsed">
+                <div class="collapsible-header" onclick="toggleSection(this)">
+                    📋 Listado Filtrado (Reingresos con Cirugía)
+                </div>
+                <div class="collapsible-content">
+                    <div class="alert-box">
+                        <h4>📌 Leyenda de Colores</h4>
+                        <p><strong style="color: #dc3545;">● Rojo:</strong> Paciente con cirugía asociada al reingreso (ID_REINGRESO coincide con ID_INGRESO de cirugía)</p>
+                        <p><strong>● Blanco:</strong> Reingreso sin cirugía asociada detectada</p>
+                    </div>
+                    
+                    <div class="filter-section">
+                        <label>Filtrar pacientes:</label>
+                        <select id="colorFilter" onchange="applyColorFilter()">
+                            <option value="all">Todos los pacientes</option>
+                            <option value="red">🔴 Solo pacientes con cirugía asociada</option>
+                            <option value="white">⚪ Solo pacientes sin cirugía asociada</option>
+                        </select>
+                    </div>
+                    
+                    <div class="table-wrapper">
+                        <table id="resultsTable">
+                            <thead>
+                                <tr>
+                                    <th>RUT</th>
+                                    <th>Nombre Paciente</th>
+                                    <th>Edad</th>
+                                    <th>Sexo</th>
+                                    <th>ID Ingreso</th>
+                                    <th>Fecha Ingreso</th>
+                                    <th>Fecha Egreso</th>
+                                    <th>Fecha Reingreso</th>
+                                    <th>Días</th>
+                                    <th>Diagnóstico</th>
+                                    <th>Unidad</th>
+                                    <th>Tratante</th>
+                                    <th>ID Reingreso</th>
+                                    <th>Cirugía Asociada</th>
+                                    <th>Marcar</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody"></tbody>
+                        </table>
+                    </div>
+                    <button class="btn" onclick="downloadCheckedRows()" style="margin-top: 20px;">📥 Descargar Filas Marcadas</button>
+                </div>
             </div>
             
-            <div class="table-wrapper">
-                <table id="resultsTable">
-                    <thead>
-                        <tr>
-                            <th>RUT</th>
-                            <th>Nombre Paciente</th>
-                            <th>Edad</th>
-                            <th>Sexo</th>
-                            <th>ID Ingreso</th>
-                            <th>Fecha Ingreso</th>
-                            <th>Fecha Egreso</th>
-                            <th>Fecha Reingreso</th>
-                            <th>Días</th>
-                            <th>Diagnóstico</th>
-                            <th>Unidad</th>
-                            <th>Tratante</th>
-                            <th>ID Reingreso</th>
-                            <th>Cirugía Asociada</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody"></tbody>
-                </table>
+            <div class="collapsible-section collapsed">
+                <div class="collapsible-header" onclick="toggleSection(this)">
+                    📄 Listado Completo (Todos los Reingresos)
+                </div>
+                <div class="collapsible-content">
+                    <div class="table-wrapper">
+                        <table id="completeTable">
+                            <thead>
+                                <tr>
+                                    <th>RUT</th>
+                                    <th>Nombre Paciente</th>
+                                    <th>Edad</th>
+                                    <th>Sexo</th>
+                                    <th>ID Ingreso</th>
+                                    <th>Fecha Ingreso</th>
+                                    <th>Fecha Egreso</th>
+                                    <th>Fecha Reingreso</th>
+                                    <th>Días</th>
+                                    <th>Diagnóstico</th>
+                                    <th>Unidad</th>
+                                    <th>Tratante</th>
+                                    <th>ID Reingreso</th>
+                                    <th>Cirugía Asociada</th>
+                                    <th>Marcar</th>
+                                </tr>
+                            </thead>
+                            <tbody id="completeTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -318,6 +414,8 @@
     <script>
         let reingresosData = null;
         let reintervencionesData = null;
+        let allProcessedRecords = [];
+        let allCompleteRecords = [];
         
         document.getElementById('reingresosFile').addEventListener('change', function(e) {
             const file = e.target.files[0];
@@ -326,8 +424,15 @@
                 reader.onload = function(e) {
                     const workbook = XLSX.read(e.target.result, { type: 'binary', cellDates: true });
                     
-                    // Buscar la hoja "Exportar Hoja de Trabajo", ignorar "SQL"
-                    const sheetName = workbook.SheetNames.find(name => name === 'Exportar Hoja de Trabajo') || workbook.SheetNames[0];
+                    // Look for valid sheet, ignore "SQL"
+                    const possibleSheets = ['Exportar Hoja de Trabajo', 'MEDIC'];
+                    const sheetName = possibleSheets.find(name => workbook.Sheets[name] && name !== 'SQL');
+                    
+                    if (!sheetName) {
+                        alert('No se encontró una hoja válida en el archivo de reingresos');
+                        return;
+                    }
+                    
                     const sheet = workbook.Sheets[sheetName];
                     reingresosData = XLSX.utils.sheet_to_json(sheet);
                     
@@ -344,8 +449,12 @@
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const workbook = XLSX.read(e.target.result, { type: 'binary', cellDates: true });
-                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                    reintervencionesData = XLSX.utils.sheet_to_json(firstSheet);
+                    
+                    // Get first non-SQL sheet
+                    const sheetName = workbook.SheetNames.find(name => name !== 'SQL') || workbook.SheetNames[0];
+                    const sheet = workbook.Sheets[sheetName];
+                    reintervencionesData = XLSX.utils.sheet_to_json(sheet);
+                    
                     console.log(`✓ Reintervenciones cargadas: ${reintervencionesData.length} registros`);
                     checkIfReady();
                 };
@@ -368,14 +477,21 @@
             }
             
             if (typeof dateStr === 'string') {
-                // Formato DD/MM/YY o DD/MM/YYYY o DD/MM/YYYY HH:MM
-                const parts = dateStr.split(' ')[0].split('/');
-                if (parts.length === 3) {
+                const normalized = dateStr.replace(/-/g, '/').trim();
+                const parts = normalized.split(/[\/\s:]/);
+                
+                if (parts.length >= 3) {
                     const day = parseInt(parts[0]);
                     const month = parseInt(parts[1]) - 1;
                     let year = parseInt(parts[2]);
-                    if (year < 100) year += 2000;
-                    return new Date(year, month, day);
+                    if (year < 100) {
+                        year += year < 50 ? 2000 : 1900;
+                    }
+                    const hour = parts[3] ? parseInt(parts[3]) : 0;
+                    const minute = parts[4] ? parseInt(parts[4]) : 0;
+                    
+                    const date = new Date(year, month, day, hour, minute);
+                    return isNaN(date.getTime()) ? null : date;
                 }
             }
             
@@ -405,6 +521,12 @@
             return Math.floor(diffMs / (1000 * 60 * 60 * 24));
         }
         
+        function getYearMonth(date) {
+            const d = parseDate(date);
+            if (!d) return null;
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+        }
+        
         function analyzeData() {
             if (!reingresosData || !reintervencionesData) {
                 alert('Por favor cargue ambos archivos');
@@ -415,19 +537,121 @@
             console.log(`Reingresos: ${reingresosData.length}`);
             console.log(`Reintervenciones: ${reintervencionesData.length}`);
             
-            // Crear índice de cirugías por RUT y por ID_INGRESO
-            const cirugiasPorRut = {};
-            const cirugiasPorIdIngreso = {};
+            const totalInicial = reingresosData.length;
             
-            reintervencionesData.forEach(cirugia => {
-                const rut = cirugia.RUT_PACIENTE;
-                const idIngreso = cirugia.ID_INGRESO;
-                
-                if (!cirugiasPorRut[rut]) {
-                    cirugiasPorRut[rut] = [];
+            // Step 1: Find most recent month in FECHA_REING
+            let mostRecentDate = null;
+            reingresosData.forEach(record => {
+                const fechaReing = parseDate(record.FECHA_REING);
+                if (fechaReing && (!mostRecentDate || fechaReing > mostRecentDate)) {
+                    mostRecentDate = fechaReing;
                 }
-                cirugiasPorRut[rut].push(cirugia);
+            });
+            
+            if (!mostRecentDate) {
+                alert('No se encontraron fechas válidas de reingreso');
+                return;
+            }
+            
+            const lastMonth = getYearMonth(mostRecentDate);
+            console.log(`Mes más reciente: ${lastMonth}`);
+            
+            // Step 2: Group by patient
+            const patientGroups = {};
+            reingresosData.forEach(record => {
+                const rut = record.RUT_PACIENTE;
+                if (!patientGroups[rut]) {
+                    patientGroups[rut] = [];
+                }
+                patientGroups[rut].push(record);
+            });
+            
+            // Step 3: Filter patients
+            let discardedSingle = 0;
+            let discardedNoMonth = 0;
+            const validPatients = {};
+            
+            Object.entries(patientGroups).forEach(([rut, records]) => {
+                // Discard if only 1 record
+                if (records.length === 1) {
+                    discardedSingle += records.length;
+                    return;
+                }
                 
+                // Discard if no readmission in last month
+                const hasRecentReadmission = records.some(r => getYearMonth(r.FECHA_REING) === lastMonth);
+                if (!hasRecentReadmission) {
+                    discardedNoMonth += records.length;
+                    return;
+                }
+                
+                validPatients[rut] = records;
+            });
+            
+            // Step 4: Pair each discharge with nearest readmission
+            const pairedRecords = [];
+            
+            Object.values(validPatients).forEach(records => {
+                // Sort by FECHA_EGRESO
+                records.sort((a, b) => {
+                    const dateA = parseDate(a.FECHA_EGRESO);
+                    const dateB = parseDate(b.FECHA_EGRESO);
+                    if (!dateA && !dateB) return 0;
+                    if (!dateA) return 1;
+                    if (!dateB) return -1;
+                    return dateA - dateB;
+                });
+                
+                // Get unique discharges
+                const uniqueDischarges = new Map();
+                records.forEach(record => {
+                    const egresoKey = `${record.ID_INGRESO}-${record.FECHA_EGRESO}`;
+                    if (!uniqueDischarges.has(egresoKey)) {
+                        uniqueDischarges.set(egresoKey, record);
+                    }
+                });
+                
+                // For each discharge, find nearest readmission
+                uniqueDischarges.forEach(record => {
+                    const fechaEgreso = parseDate(record.FECHA_EGRESO);
+                    if (!fechaEgreso) return;
+                    
+                    // Find all possible readmissions after this discharge
+                    const possibleReadmissions = records.filter(r => {
+                        const fechaReing = parseDate(r.FECHA_REING);
+                        return fechaReing && fechaReing > fechaEgreso;
+                    });
+                    
+                    if (possibleReadmissions.length > 0) {
+                        // Find nearest one
+                        let nearest = possibleReadmissions[0];
+                        let minDiff = getDaysDifference(fechaEgreso, nearest.FECHA_REING);
+                        
+                        possibleReadmissions.forEach(r => {
+                            const diff = getDaysDifference(fechaEgreso, r.FECHA_REING);
+                            if (diff !== null && diff < minDiff) {
+                                minDiff = diff;
+                                nearest = r;
+                            }
+                        });
+                        
+                        // Only keep if within 30 days
+                        if (minDiff !== null && minDiff <= 30) {
+                            pairedRecords.push({
+                                ...record,
+                                FECHA_REING: nearest.FECHA_REING,
+                                ID_REINGRESO: nearest.ID_REINGRESO,
+                                dias: minDiff
+                            });
+                        }
+                    }
+                });
+            });
+            
+            // Step 5: Match with surgeries (ID_REINGRESO = ID_INGRESO)
+            const cirugiasPorIdIngreso = {};
+            reintervencionesData.forEach(cirugia => {
+                const idIngreso = cirugia.ID_INGRESO;
                 if (idIngreso) {
                     if (!cirugiasPorIdIngreso[idIngreso]) {
                         cirugiasPorIdIngreso[idIngreso] = [];
@@ -436,161 +660,247 @@
                 }
             });
             
-            // Analizar cada reingreso y buscar cirugías asociadas
-            const reingresosProcesados = reingresosData.map(reingreso => {
-                const rut = reingreso.RUT_PACIENTE;
-                const idReingreso = reingreso.ID_REINGRESO;
-                const fechaEgreso = parseDate(reingreso.FECHA_EGRESO);
-                const fechaReingreso = parseDate(reingreso.FECHA_REING);
-                
-                const resultado = {
-                    ...reingreso,
-                    cirugias: [],
-                    tieneCirugiaAsociada: false
-                };
-                
-                // Criterio 1: Buscar por ID_REINGRESO coincidente con ID_INGRESO de la cirugía
-                if (idReingreso && cirugiasPorIdIngreso[idReingreso]) {
-                    cirugiasPorIdIngreso[idReingreso].forEach(cirugia => {
-                        resultado.cirugias.push({
-                            ...cirugia,
-                            criterio: 'ID_REINGRESO coincide con ID_INGRESO de cirugía'
-                        });
-                        resultado.tieneCirugiaAsociada = true;
-                        console.log(`✓ Coincidencia por ID: ${rut} - ${cirugia.PRESTACION}`);
-                    });
-                }
-                
-                // Criterio 2: Buscar cirugías del mismo paciente dentro de ventana temporal (30 días)
-                if (cirugiasPorRut[rut]) {
-                    cirugiasPorRut[rut].forEach(cirugia => {
-                        const fechaCirugia = parseDate(cirugia.FECHA_CIRUGIA);
-                        
-                        if (fechaCirugia && fechaEgreso && fechaReingreso) {
-                            // Verificar si la cirugía está dentro de los 30 días después del egreso
-                            const diasDesdeEgreso = getDaysDifference(fechaEgreso, fechaCirugia);
-                            
-                            // Verificar si la cirugía está dentro del período del reingreso
-                            // (después de la fecha de egreso y antes o en el reingreso + margen)
-                            const diasHastaReingreso = getDaysDifference(fechaCirugia, fechaReingreso);
-                            
-                            if (diasDesdeEgreso !== null && diasDesdeEgreso >= 0 && diasDesdeEgreso <= 30) {
-                                // La cirugía está dentro de los 30 días post-egreso
-                                // Y también debe estar cerca del reingreso
-                                if (diasHastaReingreso !== null && Math.abs(diasHastaReingreso) <= 30) {
-                                    // Evitar duplicados
-                                    const yaAgregada = resultado.cirugias.some(c => 
-                                        c.ID_PROTOCOLO === cirugia.ID_PROTOCOLO
-                                    );
-                                    
-                                    if (!yaAgregada) {
-                                        resultado.cirugias.push({
-                                            ...cirugia,
-                                            criterio: `Cirugía ${diasDesdeEgreso} días post-egreso`,
-                                            diasDesdeEgreso,
-                                            diasHastaReingreso
-                                        });
-                                        resultado.tieneCirugiaAsociada = true;
-                                        console.log(`✓ Coincidencia temporal: ${rut} - ${cirugia.PRESTACION} (${diasDesdeEgreso} días post-egreso)`);
-                                    }
-                                }
-                            }
-                        }
-                    });
-                }
-                
-                return resultado;
-            });
-            
-            // Marcar todos los registros del mismo paciente si tiene cirugía asociada
+            // Mark records with matching surgeries
             const pacientesConCirugia = new Set();
-            reingresosProcesados.forEach(r => {
-                if (r.tieneCirugiaAsociada) {
-                    pacientesConCirugia.add(r.RUT_PACIENTE);
+            pairedRecords.forEach(record => {
+                const idReingreso = record.ID_REINGRESO;
+                if (idReingreso && cirugiasPorIdIngreso[idReingreso]) {
+                    record.cirugias = cirugiasPorIdIngreso[idReingreso];
+                    record.tieneCirugiaAsociada = true;
+                    pacientesConCirugia.add(record.RUT_PACIENTE);
+                } else {
+                    record.cirugias = [];
+                    record.tieneCirugiaAsociada = false;
                 }
             });
             
-            // Aplicar marca roja a TODOS los registros de pacientes con cirugía
-            reingresosProcesados.forEach(r => {
-                if (pacientesConCirugia.has(r.RUT_PACIENTE)) {
-                    r.marcarRojo = true;
+            // Mark all records from patients with surgery
+            pairedRecords.forEach(record => {
+                if (pacientesConCirugia.has(record.RUT_PACIENTE)) {
+                    record.marcarRojo = true;
                 }
             });
             
-            // Ordenar: primero los que tienen cirugía asociada
-            reingresosProcesados.sort((a, b) => {
+            // Sort: red first, then by patient
+            pairedRecords.sort((a, b) => {
                 if (a.marcarRojo && !b.marcarRojo) return -1;
                 if (!a.marcarRojo && b.marcarRojo) return 1;
+                if (a.RUT_PACIENTE !== b.RUT_PACIENTE) {
+                    return String(a.RUT_PACIENTE).localeCompare(String(b.RUT_PACIENTE));
+                }
                 return 0;
             });
             
-            displayResults(reingresosProcesados, pacientesConCirugia);
-        }
-        
-        function displayResults(reingresos, pacientesConCirugia) {
-            const conCirugia = reingresos.filter(r => r.marcarRojo).length;
-            const sinCirugia = reingresos.length - conCirugia;
-            const uniquePatients = new Set(reingresos.map(r => r.RUT_PACIENTE)).size;
+            // Update stats
+            const conCirugia = pairedRecords.filter(r => r.marcarRojo).length;
+            const sinCirugia = pairedRecords.length - conCirugia;
             
-            document.getElementById('totalReingresos').textContent = reingresos.length;
-            document.getElementById('uniquePatients').textContent = uniquePatients;
+            document.getElementById('totalReingresos').textContent = totalInicial;
+            document.getElementById('uniquePatients').textContent = Object.keys(patientGroups).length;
+            document.getElementById('discardedSingle').textContent = discardedSingle;
+            document.getElementById('discardedNoMonth').textContent = discardedNoMonth;
+            document.getElementById('processedReingresos').textContent = pairedRecords.length;
             document.getElementById('conCirugia').textContent = conCirugia;
             document.getElementById('sinCirugia').textContent = sinCirugia;
-            document.getElementById('totalReintervenciones').textContent = reintervencionesData.length;
             
             document.getElementById('statsSection').style.display = 'flex';
             document.getElementById('resultsSection').style.display = 'block';
             
+            allProcessedRecords = pairedRecords;
+            allCompleteRecords = pairedRecords;
+            
+            displayResults(pairedRecords);
+            displayCompleteList(pairedRecords);
+        }
+        
+        function toggleSection(element) {
+            const section = element.parentElement;
+            section.classList.toggle('collapsed');
+        }
+        
+        function applyColorFilter() {
+            const filterValue = document.getElementById('colorFilter').value;
+            
+            let filteredRecords = allProcessedRecords;
+            
+            if (filterValue === 'red') {
+                const patientsWithSurgery = new Set();
+                allProcessedRecords.forEach(r => {
+                    if (r.marcarRojo) {
+                        patientsWithSurgery.add(r.RUT_PACIENTE);
+                    }
+                });
+                filteredRecords = allProcessedRecords.filter(r => patientsWithSurgery.has(r.RUT_PACIENTE));
+            } else if (filterValue === 'white') {
+                const patientsWithoutSurgery = new Set();
+                allProcessedRecords.forEach(r => {
+                    if (!r.marcarRojo) {
+                        patientsWithoutSurgery.add(r.RUT_PACIENTE);
+                    }
+                });
+                filteredRecords = allProcessedRecords.filter(r => patientsWithoutSurgery.has(r.RUT_PACIENTE));
+            }
+            
+            displayResults(filteredRecords);
+        }
+        
+        function syncCheckboxes(checkbox) {
+            const dataId = checkbox.getAttribute('data-id');
+            const isChecked = checkbox.checked;
+            
+            document.querySelectorAll(`input[data-id="${dataId}"]`).forEach(cb => {
+                cb.checked = isChecked;
+            });
+        }
+        
+        function displayResults(records) {
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
             
             let currentRut = null;
             
-            reingresos.forEach(reingreso => {
+            records.forEach(record => {
                 const tr = document.createElement('tr');
                 
-                if (currentRut !== reingreso.RUT_PACIENTE) {
+                if (currentRut !== record.RUT_PACIENTE) {
                     tr.classList.add('patient-group');
-                    currentRut = reingreso.RUT_PACIENTE;
+                    currentRut = record.RUT_PACIENTE;
                 }
                 
-                if (reingreso.marcarRojo) {
+                if (record.marcarRojo) {
                     tr.classList.add('highlight-red');
                 }
                 
-                const dias = getDaysDifference(reingreso.FECHA_EGRESO, reingreso.FECHA_REING);
-                
                 let cirugiaInfo = '';
-                if (reingreso.cirugias && reingreso.cirugias.length > 0) {
-                    cirugiaInfo = reingreso.cirugias.map(c => 
+                if (record.cirugias && record.cirugias.length > 0) {
+                    cirugiaInfo = record.cirugias.map(c => 
                         `${c.PRESTACION || 'N/A'} (${formatDate(c.FECHA_CIRUGIA)})`
                     ).join('<br>');
                 }
                 
                 tr.innerHTML = `
-                    <td>${reingreso.RUT_PACIENTE || ''}</td>
-                    <td>${reingreso.NOMBRE_PACIENTE || ''}</td>
-                    <td>${reingreso.EDAD || ''}</td>
-                    <td>${reingreso.SEXO_PACIENTE || ''}</td>
-                    <td>${reingreso.ID_INGRESO || ''}</td>
-                    <td>${formatDate(reingreso.FECHA_INGRESO)}</td>
-                    <td>${formatDate(reingreso.FECHA_EGRESO)}</td>
-                    <td>${formatDate(reingreso.FECHA_REING)}</td>
-                    <td><strong>${dias !== null ? dias : 'N/A'}</strong></td>
-                    <td>${reingreso.DIAGNOSTICO_EGRESO || ''}</td>
-                    <td>${reingreso.UNIDAD || ''}</td>
-                    <td>${reingreso.NOMBRE_TRATANTE || ''}</td>
-                    <td>${reingreso.ID_REINGRESO || ''}</td>
+                    <td>${record.RUT_PACIENTE || ''}</td>
+                    <td>${record.NOMBRE_PACIENTE || ''}</td>
+                    <td>${record.EDAD || ''}</td>
+                    <td>${record.SEXO_PACIENTE || ''}</td>
+                    <td>${record.ID_INGRESO || ''}</td>
+                    <td>${formatDate(record.FECHA_INGRESO)}</td>
+                    <td>${formatDate(record.FECHA_EGRESO)}</td>
+                    <td>${formatDate(record.FECHA_REING)}</td>
+                    <td><strong>${record.dias !== null ? record.dias : 'N/A'}</strong></td>
+                    <td>${record.DIAGNOSTICO_EGRESO || ''}</td>
+                    <td>${record.UNIDAD || ''}</td>
+                    <td>${record.NOMBRE_TRATANTE || ''}</td>
+                    <td>${record.ID_REINGRESO || ''}</td>
                     <td>${cirugiaInfo || '-'}</td>
+                    <td style="text-align: center;"><input type="checkbox" class="readmission-check" data-id="${record.RUT_PACIENTE}-${record.ID_REINGRESO}" data-record='${JSON.stringify(record).replace(/'/g, "&#39;")}' onchange="syncCheckboxes(this)" /></td>
                 `;
                 
                 tbody.appendChild(tr);
             });
-            
-            console.log('\n=== ANÁLISIS COMPLETADO ===');
-            console.log(`Pacientes con cirugía asociada: ${pacientesConCirugia.size}`);
-            console.log(`Registros marcados en rojo: ${conCirugia}`);
         }
-    </script>
-</body>
-</html>
+        
+        function displayCompleteList(records) {
+            const tbody = document.getElementById('completeTableBody');
+            tbody.innerHTML = '';
+            
+            let currentRut = null;
+            
+            records.forEach(record => {
+                const tr = document.createElement('tr');
+                
+                if (currentRut !== record.RUT_PACIENTE) {
+                    tr.classList.add('patient-group');
+                    currentRut = record.RUT_PACIENTE;
+                }
+                
+                if (record.marcarRojo) {
+                    tr.classList.add('highlight-red');
+                }
+                
+                let cirugiaInfo = '';
+                if (record.cirugias && record.cirugias.length > 0) {
+                    cirugiaInfo = record.cirugias.map(c => 
+                        `${c.PRESTACION || 'N/A'} (${formatDate(c.FECHA_CIRUGIA)})`
+                    ).join('<br>');
+                }
+                
+                tr.innerHTML = `
+                    <td>${record.RUT_PACIENTE || ''}</td>
+                    <td>${record.NOMBRE_PACIENTE || ''}</td>
+                    <td>${record.EDAD || ''}</td>
+                    <td>${record.SEXO_PACIENTE || ''}</td>
+                    <td>${record.ID_INGRESO || ''}</td>
+                    <td>${formatDate(record.FECHA_INGRESO)}</td>
+                    <td>${formatDate(record.FECHA_EGRESO)}</td>
+                    <td>${formatDate(record.FECHA_REING)}</td>
+                    <td><strong>${record.dias !== null ? record.dias : 'N/A'}</strong></td>
+                    <td>${record.DIAGNOSTICO_EGRESO || ''}</td>
+                    <td>${record.UNIDAD || ''}</td>
+                    <td>${record.NOMBRE_TRATANTE || ''}</td>
+                    <td>${record.ID_REINGRESO || ''}</td>
+                    <td>${cirugiaInfo || '-'}</td>
+                    <td style="text-align: center;"><input type="checkbox" class="readmission-check" data-id="${record.RUT_PACIENTE}-${record.ID_REINGRESO}" data-record='${JSON.stringify(record).replace(/'/g, "&#39;")}' onchange="syncCheckboxes(this)" /></td>
+                `;
+                
+                tbody.appendChild(tr);
+            });
+        }
+        
+        function downloadCheckedRows() {
+            const checkboxes = document.querySelectorAll('.readmission-check:checked');
+            
+            if (checkboxes.length === 0) {
+                alert('No hay filas marcadas para descargar');
+                return;
+            }
+            
+            const selectedRecords = [];
+            const seenIds = new Set();
+            
+            checkboxes.forEach(cb => {
+                const dataId = cb.getAttribute('data-id');
+                if (!seenIds.has(dataId)) {
+                    seenIds.add(dataId);
+                    const record = JSON.parse(cb.getAttribute('data-record'));
+                    selectedRecords.push(record);
+                }
+            });
+            
+            const ws_data = [
+                ['RUT_PACIENTE', 'NOMBRE_PACIENTE', 'EDAD', 'SEXO_PACIENTE', 'ID_INGRESO', 'FECHA_INGRESO', 'FECHA_EGRESO', 'FECHA_REING', 'DIAS', 'DIAGNOSTICO_EGRESO', 'UNIDAD', 'NOMBRE_TRATANTE', 'ID_REINGRESO', 'CIRUGIA_ASOCIADA']
+            ];
+            
+            selectedRecords.forEach(record => {
+                let cirugiaInfo = '';
+                if (record.cirugias && record.cirugias.length > 0) {
+                    cirugiaInfo = record.cirugias.map(c => 
+                        `${c.PRESTACION || 'N/A'} (${formatDate(c.FECHA_CIRUGIA)})`
+                    ).join('; ');
+                }
+                
+                ws_data.push([
+                    record.RUT_PACIENTE || '',
+                    record.NOMBRE_PACIENTE || '',
+                    record.EDAD || '',
+                    record.SEXO_PACIENTE || '',
+                    record.ID_INGRESO || '',
+                    formatDate(record.FECHA_INGRESO),
+                    formatDate(record.FECHA_EGRESO),
+                    formatDate(record.FECHA_REING),
+                    record.dias || '',
+                    record.DIAGNOSTICO_EGRESO || '',
+                    record.UNIDAD || '',
+                    record.NOMBRE_TRATANTE || '',
+                    record.ID_REINGRESO || '',
+                    cirugiaInfo || '-'
+                ]);
+            });
+            
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(ws_data);
+            XLSX.utils.book_append_sheet(wb, ws, 'Reingresos Marcados');
+            
+            const fecha = new Date().toISOString().slice(0, 10);
+            XLSX.writeFile(wb, `Reingresos_Marcados_${fecha}.xlsx`);
+        }
