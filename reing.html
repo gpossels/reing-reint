@@ -187,6 +187,14 @@
             background-color: #ffe6e6;
         }
         
+        .highlight-green {
+            background-color: #d4f4dd;
+        }
+        
+        .highlight-yellow {
+            background-color: #fff3cd;
+        }
+        
         .patient-group {
             border-top: 3px solid #667eea;
         }
@@ -231,10 +239,6 @@
                 <div class="stat-value" id="uniquePatients">0</div>
             </div>
             <div class="stat-item">
-                <div class="stat-label">Descartados (1 registro)</div>
-                <div class="stat-value" id="discardedSingle">0</div>
-            </div>
-            <div class="stat-item">
                 <div class="stat-label">Descartados (Sin mes actual)</div>
                 <div class="stat-value" id="discardedNoMonth">0</div>
             </div>
@@ -246,20 +250,30 @@
                 <div class="stat-label">🔴 Con Cirugía</div>
                 <div class="stat-value" id="withSurgery" style="color: #dc3545;">0</div>
             </div>
+            <div class="stat-item">
+                <div class="stat-label">🟡 Con Alertas Amarillas</div>
+                <div class="stat-value" id="withYellowAlerts" style="color: #ffc107;">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">🟢 Con Alertas</div>
+                <div class="stat-value" id="withAlerts" style="color: #28a745;">0</div>
+            </div>
         </div>
         
         <div id="resultsSection" class="results-section" style="display: none;">
             <div class="collapsible-section collapsed">
                 <div class="collapsible-header" onclick="toggleSection(this)">
-                    📋 Listado de Reingresos
+                    📋 Listado Filtrado (Reingresos Procesados)
                 </div>
                 <div class="collapsible-content">
                     <div class="filter-section">
                         <label>Filtrar: </label>
                         <select id="filterSelect" onchange="applyFilter()">
                             <option value="all">Todos</option>
-                            <option value="red">Solo con cirugía</option>
-                            <option value="white">Solo sin cirugía</option>
+                            <option value="red">Solo con cirugía / alertas rojas</option>
+                            <option value="yellow">Solo con alertas amarillas</option>
+                            <option value="green">Solo con alertas verdes</option>
+                            <option value="white">Solo sin alertas</option>
                         </select>
                     </div>
                     <table id="resultsTable">
@@ -269,6 +283,8 @@
                                 <th>Nombre</th>
                                 <th>Edad</th>
                                 <th>Sexo</th>
+                                <th>Cama Asignada</th>
+                                <th>Prestación Realizada</th>
                                 <th>ID Ingreso</th>
                                 <th>Fecha Egreso</th>
                                 <th>Fecha Reingreso</th>
@@ -276,7 +292,7 @@
                                 <th>Diagnóstico</th>
                                 <th>ID Reingreso</th>
                                 <th>Cirugía</th>
-                                <th>Marcar</th>
+                                <th><input type="checkbox" id="checkAllFiltered" onchange="toggleAllFiltered()"> Marcar</th>
                             </tr>
                         </thead>
                         <tbody id="tableBody"></tbody>
@@ -387,16 +403,11 @@
                 patients[rut].push(r);
             });
             
-            // Filter patients
-            let discardedSingle = 0;
+            // Filter patients - REMOVED SINGLE RECORD RULE
             let discardedNoMonth = 0;
             const validPatients = {};
             
             Object.entries(patients).forEach(([rut, records]) => {
-                if (records.length === 1) {
-                    discardedSingle += records.length;
-                    return;
-                }
                 const hasRecent = records.some(r => getYearMonth(r.FECHA_REING) === lastMonth);
                 if (!hasRecent) {
                     discardedNoMonth += records.length;
@@ -405,38 +416,91 @@
                 validPatients[rut] = records;
             });
             
-            // Pair discharges with nearest readmission
+            // Build sequential chains: each discharge pairs with immediate next readmission
+            // Only if no other discharge exists between them
             const paired = [];
+            
             Object.values(validPatients).forEach(records => {
-                records.sort((a,b) => parseDate(a.FECHA_EGRESO) - parseDate(b.FECHA_EGRESO));
+                // Get unique discharges sorted by date
+                const uniqueDischarges = [];
+                const seenDischarges = new Set();
                 
-                const uniqueDischarges = new Map();
                 records.forEach(r => {
-                    const key = `${r.ID_INGRESO}-${r.FECHA_EGRESO}`;
-                    if (!uniqueDischarges.has(key)) uniqueDischarges.set(key, r);
+                    if (r.ID_INGRESO && r.FECHA_EGRESO) {
+                        const key = `${r.ID_INGRESO}-${formatDate(r.FECHA_EGRESO)}`;
+                        if (!seenDischarges.has(key)) {
+                            seenDischarges.add(key);
+                            uniqueDischarges.push({
+                                id: r.ID_INGRESO,
+                                date: parseDate(r.FECHA_EGRESO),
+                                record: r
+                            });
+                        }
+                    }
                 });
                 
-                uniqueDischarges.forEach(record => {
-                    const egreso = parseDate(record.FECHA_EGRESO);
-                    if (!egreso) return;
+                // Get unique readmissions sorted by date
+                const uniqueReadmissions = [];
+                const seenReadmissions = new Set();
+                
+                records.forEach(r => {
+                    if (r.ID_REINGRESO && r.FECHA_REING) {
+                        const key = `${r.ID_REINGRESO}-${formatDate(r.FECHA_REING)}`;
+                        if (!seenReadmissions.has(key)) {
+                            seenReadmissions.add(key);
+                            uniqueReadmissions.push({
+                                id: r.ID_REINGRESO,
+                                date: parseDate(r.FECHA_REING)
+                            });
+                        }
+                    }
+                });
+                
+                // Sort chronologically
+                uniqueDischarges.sort((a, b) => a.date - b.date);
+                uniqueReadmissions.sort((a, b) => a.date - b.date);
+                
+                // Get all discharge IDs that also exist as readmission IDs (chain links)
+                const dischargeIds = new Set(uniqueDischarges.map(d => d.id));
+                
+                // For each discharge, find the immediate next readmission
+                // But only if no other discharge exists between them
+                uniqueDischarges.forEach((discharge, index) => {
+                    const dischargeDate = discharge.date;
+                    const dischargeId = discharge.id;
                     
-                    const future = records.filter(r => parseDate(r.FECHA_REING) > egreso);
-                    if (future.length > 0) {
-                        let nearest = future[0];
-                        let minDiff = getDays(egreso, nearest.FECHA_REING);
-                        future.forEach(r => {
-                            const diff = getDays(egreso, r.FECHA_REING);
-                            if (diff < minDiff) {
-                                minDiff = diff;
-                                nearest = r;
-                            }
-                        });
-                        if (minDiff <= 30) {
+                    // Find the first readmission after this discharge
+                    const nextReadmission = uniqueReadmissions.find(r => r.date > dischargeDate);
+                    
+                    if (!nextReadmission) return;
+                    
+                    // Check if there's another discharge between this discharge and the readmission
+                    const hasIntermediateDischarge = uniqueDischarges.some((d, i) => 
+                        i > index && d.date > dischargeDate && d.date < nextReadmission.date
+                    );
+                    
+                    // Skip this pair if there's an intermediate discharge
+                    if (hasIntermediateDischarge) return;
+                    
+                    const dias = getDays(dischargeDate, nextReadmission.date);
+                    
+                    // Include if within 30 days AND (readmission is also a discharge OR it's the final readmission)
+                    const isChainLink = dischargeIds.has(nextReadmission.id);
+                    const isFinalReadmission = uniqueReadmissions.indexOf(nextReadmission) === uniqueReadmissions.length - 1;
+                    
+                    if (dias !== null && dias > 0 && dias <= 30 && (isChainLink || isFinalReadmission)) {
+                        // Find the original record with this exact pairing
+                        const matchingRecord = records.find(r => 
+                            r.ID_INGRESO === dischargeId &&
+                            formatDate(r.FECHA_EGRESO) === formatDate(dischargeDate) &&
+                            r.ID_REINGRESO === nextReadmission.id &&
+                            formatDate(r.FECHA_REING) === formatDate(nextReadmission.date)
+                        );
+                        
+                        if (matchingRecord) {
                             paired.push({
-                                ...record,
-                                FECHA_REING: nearest.FECHA_REING,
-                                ID_REINGRESO: nearest.ID_REINGRESO,
-                                dias: minDiff
+                                ...matchingRecord,
+                                dias: dias
                             });
                         }
                     }
@@ -456,6 +520,10 @@
             }
             
             const patientsWithSurgery = new Set();
+            const patientsWithAlert = new Set();
+            const patientsWithRedAlert = new Set();
+            const patientsWithYellowAlert = new Set();
+            
             paired.forEach(r => {
                 const id = r.ID_REINGRESO;
                 if (id && surgeryIndex[id]) {
@@ -466,15 +534,65 @@
                     r.surgeries = [];
                     r.hasSurgery = false;
                 }
+                
+                // Check for red alert conditions (diagnoses)
+                const hasDolorAgudo = r.DIAGNOSTICO_EGRESO === 'DOLOR AGUDO';
+                const hasEmboliaPulmonar = r.DIAGNOSTICO_EGRESO === 'EMBOLIA PULMONAR';
+                const hasEmboliaVena = r.DIAGNOSTICO_EGRESO === 'EMBOLIA Y TROMBOSIS DE VENA NO ESPECIFICADA';
+                
+                // Check for red alert conditions (prestaciones)
+                const hasLaparotomia = r.NOMBRE_PRESTACION_INGRESO === 'LAP-LAPAROTOMIA EXPLORADA';
+                
+                if (hasDolorAgudo || hasEmboliaPulmonar || hasEmboliaVena || hasLaparotomia) {
+                    r.hasRedAlert = true;
+                    patientsWithRedAlert.add(r.RUT_PACIENTE);
+                }
+                
+                // Check for yellow alert conditions (prestaciones)
+                const hasReconstitucion = r.NOMBRE_PRESTACION_INGRESO === 'RECONSTITUCION  TRANSITO POST OPERACION';
+                const hasEndoprotesis = r.NOMBRE_PRESTACION_INGRESO === 'ENDOPROTESIS TOTAL DE CADERA';
+                
+                if (hasReconstitucion || hasEndoprotesis) {
+                    r.hasYellowAlert = true;
+                    patientsWithYellowAlert.add(r.RUT_PACIENTE);
+                }
+                
+                // Check for green alert conditions
+                const hasBoxTransitorio = r.DESC_COD_CAMA === 'BOX TRANSITORIO 0 -3 HRS';
+                const hasMucopolisacaridosis = 
+                    r.DIAGNOSTICO_EGRESO === 'MUCOPOLISACARIDOSIS NO ESPECIFICADA' ||
+                    r.DIAGNOSTICO_EGRESO === 'MUCOPOLISACARIDOSIS TIPO I';
+                const hasCateterInstallation = r.NOMBRE_PRESTACION_INGRESO === 'INSTALACION CATETER RESERV SUB CUT QMT';
+                const hasAberturaArtificial = r.DIAGNOSTICO_EGRESO === 'ABERTURA ARTIFICIAL, NO ESPECIFICADA';
+                
+                // Check for green alert conditions (prestaciones)
+                const hasColecistectomia = r.NOMBRE_PRESTACION_INGRESO === 'COLECISTECTOMIA POR VIDEOLAPAROSCOPIA';
+                const hasHemorroidectomia = r.NOMBRE_PRESTACION_INGRESO === 'HEMORROIDECTOMIA (INCLUYE OTRAS OPERA-';
+                const hasGinecomastia = r.NOMBRE_PRESTACION_INGRESO === 'GINECOMASTIA, CORRECCION PLASTICA';
+                const hasVasectomia = r.NOMBRE_PRESTACION_INGRESO === 'VASECTOMIA BILATERAL, (PROC. AUT.) (LA V';
+                
+                if (hasBoxTransitorio || hasMucopolisacaridosis || hasCateterInstallation || hasAberturaArtificial ||
+                    hasColecistectomia || hasHemorroidectomia || hasGinecomastia || hasVasectomia) {
+                    r.hasAlert = true;
+                    patientsWithAlert.add(r.RUT_PACIENTE);
+                }
             });
             
             paired.forEach(r => {
-                if (patientsWithSurgery.has(r.RUT_PACIENTE)) r.markRed = true;
+                if (patientsWithSurgery.has(r.RUT_PACIENTE) || patientsWithRedAlert.has(r.RUT_PACIENTE)) {
+                    r.markRed = true;
+                }
+                if (patientsWithYellowAlert.has(r.RUT_PACIENTE)) r.markYellow = true;
+                if (patientsWithAlert.has(r.RUT_PACIENTE)) r.markGreen = true;
             });
             
             paired.sort((a,b) => {
                 if (a.markRed && !b.markRed) return -1;
                 if (!a.markRed && b.markRed) return 1;
+                if (a.markYellow && !b.markYellow) return -1;
+                if (!a.markYellow && b.markYellow) return 1;
+                if (a.markGreen && !b.markGreen) return -1;
+                if (!a.markGreen && b.markGreen) return 1;
                 return String(a.RUT_PACIENTE).localeCompare(String(b.RUT_PACIENTE));
             });
             
@@ -483,10 +601,11 @@
             // Update stats
             document.getElementById('totalInicial').textContent = totalInicial;
             document.getElementById('uniquePatients').textContent = Object.keys(patients).length;
-            document.getElementById('discardedSingle').textContent = discardedSingle;
             document.getElementById('discardedNoMonth').textContent = discardedNoMonth;
             document.getElementById('finalRecords').textContent = paired.length;
             document.getElementById('withSurgery').textContent = paired.filter(r => r.markRed).length;
+            document.getElementById('withYellowAlerts').textContent = paired.filter(r => r.markYellow).length;
+            document.getElementById('withAlerts').textContent = paired.filter(r => r.markGreen).length;
             
             document.getElementById('statsSection').style.display = 'flex';
             document.getElementById('resultsSection').style.display = 'block';
@@ -506,6 +625,8 @@
                     currentRut = r.RUT_PACIENTE;
                 }
                 if (r.markRed) tr.classList.add('highlight-red');
+                else if (r.markYellow) tr.classList.add('highlight-yellow');
+                else if (r.markGreen) tr.classList.add('highlight-green');
                 
                 const surgeryInfo = r.surgeries && r.surgeries.length > 0
                     ? r.surgeries.map(s => `${s.PRESTACION || 'N/A'}`).join('; ')
@@ -516,6 +637,8 @@
                     <td>${r.NOMBRE_PACIENTE || ''}</td>
                     <td>${r.EDAD || ''}</td>
                     <td>${r.SEXO_PACIENTE || ''}</td>
+                    <td>${r.DESC_COD_CAMA || ''}</td>
+                    <td>${r.NOMBRE_PRESTACION_INGRESO || ''}</td>
                     <td>${r.ID_INGRESO || ''}</td>
                     <td>${formatDate(r.FECHA_EGRESO)}</td>
                     <td>${formatDate(r.FECHA_REING)}</td>
@@ -523,9 +646,17 @@
                     <td>${r.DIAGNOSTICO_EGRESO || ''}</td>
                     <td>${r.ID_REINGRESO || ''}</td>
                     <td>${surgeryInfo}</td>
-                    <td><input type="checkbox" data-id="${r.RUT_PACIENTE}-${r.ID_REINGRESO}"></td>
+                    <td><input type="checkbox" class="row-checkbox-filtered" data-id="${r.RUT_PACIENTE}-${r.ID_REINGRESO}"></td>
                 `;
                 tbody.appendChild(tr);
+            });
+        }
+        
+        function toggleAllFiltered() {
+            const masterCheckbox = document.getElementById('checkAllFiltered');
+            const checkboxes = document.querySelectorAll('.row-checkbox-filtered');
+            checkboxes.forEach(cb => {
+                cb.checked = masterCheckbox.checked;
             });
         }
         
@@ -540,8 +671,14 @@
             if (filter === 'red') {
                 const pats = new Set(allRecords.filter(r => r.markRed).map(r => r.RUT_PACIENTE));
                 filtered = allRecords.filter(r => pats.has(r.RUT_PACIENTE));
+            } else if (filter === 'yellow') {
+                const pats = new Set(allRecords.filter(r => r.markYellow && !r.markRed).map(r => r.RUT_PACIENTE));
+                filtered = allRecords.filter(r => pats.has(r.RUT_PACIENTE));
+            } else if (filter === 'green') {
+                const pats = new Set(allRecords.filter(r => r.markGreen && !r.markRed && !r.markYellow).map(r => r.RUT_PACIENTE));
+                filtered = allRecords.filter(r => pats.has(r.RUT_PACIENTE));
             } else if (filter === 'white') {
-                const pats = new Set(allRecords.filter(r => !r.markRed).map(r => r.RUT_PACIENTE));
+                const pats = new Set(allRecords.filter(r => !r.markRed && !r.markYellow && !r.markGreen).map(r => r.RUT_PACIENTE));
                 filtered = allRecords.filter(r => pats.has(r.RUT_PACIENTE));
             }
             
@@ -549,13 +686,13 @@
         }
         
         function downloadMarked() {
-            const checked = Array.from(document.querySelectorAll('input[type="checkbox"]:checked'));
+            const checked = Array.from(document.querySelectorAll('.row-checkbox-filtered:checked'));
             if (checked.length === 0) {
                 alert('No hay filas marcadas');
                 return;
             }
             
-            const data = [['RUT', 'Nombre', 'Edad', 'Sexo', 'ID_Ingreso', 'Fecha_Egreso', 'Fecha_Reingreso', 'Dias', 'Diagnostico', 'ID_Reingreso', 'Cirugia']];
+            const data = [['RUT', 'Nombre', 'Edad', 'Sexo', 'Cama_Asignada', 'Prestacion_Realizada', 'ID_Ingreso', 'Fecha_Egreso', 'Fecha_Reingreso', 'Dias', 'Diagnostico', 'ID_Reingreso', 'Cirugia']];
             
             checked.forEach(cb => {
                 const row = cb.closest('tr');
@@ -571,7 +708,9 @@
                     cells[7].textContent,
                     cells[8].textContent,
                     cells[9].textContent,
-                    cells[10].textContent
+                    cells[10].textContent,
+                    cells[11].textContent,
+                    cells[12].textContent
                 ]);
             });
             
