@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analizador de Reingresos</title>
+    <title>Analizador de Reintervenciones Quirúrgicas</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         * {
@@ -20,7 +20,7 @@
         }
         
         .container {
-            max-width: 1800px;
+            max-width: 1600px;
             margin: 0 auto;
             background: white;
             border-radius: 12px;
@@ -61,7 +61,7 @@
         .file-input-wrapper label {
             font-weight: 600;
             color: #495057;
-            min-width: 200px;
+            min-width: 120px;
         }
         
         input[type="file"] {
@@ -89,10 +89,9 @@
             cursor: pointer;
             transition: transform 0.2s, box-shadow 0.2s;
             margin-top: 15px;
-            width: 100%;
         }
         
-        .btn:hover:not(:disabled) {
+        .btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
         }
@@ -100,23 +99,24 @@
         .btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
+            transform: none;
         }
         
         .stats {
             padding: 20px 30px;
             background: #e9ecef;
             display: flex;
-            gap: 30px;
+            gap: 20px;
             flex-wrap: wrap;
         }
         
         .stat-item {
             flex: 1;
-            min-width: 150px;
+            min-width: 130px;
         }
         
         .stat-label {
-            font-size: 12px;
+            font-size: 11px;
             color: #6c757d;
             text-transform: uppercase;
             font-weight: 600;
@@ -128,102 +128,1078 @@
             font-weight: 700;
             color: #495057;
         }
+        
+        .config-section {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+        }
+        
+        .config-section h3 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #495057;
+        }
+        
+        .config-group {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .config-group h4 {
+            font-size: 14px;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .config-group.verde h4 {
+            color: #28a745;
+        }
+        
+        .config-group.amarillo h4 {
+            color: #ffc107;
+        }
+        
+        .config-group.rojo h4 {
+            color: #dc3545;
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .input-group input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .btn-small {
+            padding: 8px 15px;
+            font-size: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .btn-small:hover {
+            transform: translateY(-1px);
+        }
+        
+        .btn-remove {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 11px;
+            margin-left: 5px;
+        }
+        
+        .btn-remove:hover {
+            background: #c82333;
+        }
+        
+        .list-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .list-item {
+            background: #e9ecef;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .list-item.verde {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .list-item.amarillo {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .list-item.rojo {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .results-section {
+            padding: 30px;
+            overflow-x: auto;
+        }
+        
+        .table-wrapper {
+            overflow-x: auto;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        
+        thead {
+            background: #495057;
+            color: white;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        th {
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+        
+        td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        tbody tr {
+            transition: background-color 0.2s;
+        }
+        
+        tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .highlight-green {
+            background-color: #d4edda !important;
+        }
+        
+        .highlight-green:hover {
+            background-color: #c3e6cb !important;
+        }
+        
+        .highlight-yellow {
+            background-color: #fff3cd !important;
+        }
+        
+        .highlight-yellow:hover {
+            background-color: #ffe69c !important;
+        }
+        
+        .highlight-red {
+            background-color: #f8d7da !important;
+        }
+        
+        .highlight-red:hover {
+            background-color: #f5c6cb !important;
+        }
+        
+        .patient-group {
+            border-top: 3px solid #667eea;
+        }
+        .config-group h4 {
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.config-group h4:hover {
+    opacity: 0.8;
+}
+
+.config-group h4::before {
+    content: '▼';
+    font-size: 12px;
+    transition: transform 0.3s;
+}
+
+.config-group.collapsed h4::before {
+    transform: rotate(-90deg);
+}
+
+.config-content {
+    max-height: 500px;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+}
+
+.config-group.collapsed .config-content {
+    max-height: 0;
+}
+
+.collapsible-section {
+    margin-bottom: 20px;
+}
+
+.collapsible-header {
+    background: #495057;
+    color: white;
+    padding: 15px 20px;
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    font-size: 16px;
+    border-radius: 6px;
+    transition: background-color 0.2s;
+}
+
+.collapsible-header:hover {
+    background: #5a6268;
+}
+
+.collapsible-header::before {
+    content: '▼';
+    font-size: 12px;
+    transition: transform 0.3s;
+}
+
+.collapsible-section.collapsed .collapsible-header::before {
+    transform: rotate(-90deg);
+}
+
+.collapsible-content {
+    max-height: 10000px;
+    overflow: visible;
+    transition: max-height 0.3s ease-out;
+}
+
+.collapsible-section.collapsed .collapsible-content {
+    max-height: 0;
+    overflow: hidden;
+}
+
+
+        
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🏥 Analizador de Reingresos</h1>
-            <p>Detección de reingresos hospitalarios no planificados (ventana de 30 días)</p>
+            <h1>⚕️ Analizador de Reintervenciones Quirúrgicas</h1>
+            <p>Detección de reintervenciones no planificadas en los últimos 30 días</p>
         </div>
         
         <div class="upload-section">
             <div class="file-input-wrapper">
-                <label for="reingresosFile">📋 Archivo de Reingresos:</label>
-                <input type="file" id="reingresosFile" accept=".xlsx,.xls" />
-            </div>
-            <div class="file-input-wrapper">
-                <label for="reintervencionesFile">🔪 Archivo de Reintervenciones (Opcional):</label>
-                <input type="file" id="reintervencionesFile" accept=".xlsx,.xls" />
+                <label for="excelFile">Archivo Excel:</label>
+                <input type="file" id="excelFile" accept=".xlsx,.xls" />
             </div>
             <button class="btn" id="analyzeBtn" disabled>Analizar Datos</button>
         </div>
         
         <div id="statsSection" style="display: none;" class="stats">
             <div class="stat-item">
-                <div class="stat-label">Total Reingresos</div>
-                <div class="stat-value" id="totalReingresos">0</div>
+                <div class="stat-label">Total Registros</div>
+                <div class="stat-value" id="totalRecords">0</div>
             </div>
             <div class="stat-item">
-                <div class="stat-label">Procesados</div>
-                <div class="stat-value" id="processedReingresos">0</div>
+                <div class="stat-label">Pacientes Únicos</div>
+                <div class="stat-value" id="uniquePatients">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Eliminados (Sin Cirugía Mes)</div>
+                <div class="stat-value" id="removedNoMonth">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Eliminados (>30 días)</div>
+                <div class="stat-value" id="removedDays">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">🟢 Verdes</div>
+                <div class="stat-value" id="countGreen">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">🟡 Amarillas</div>
+                <div class="stat-value" id="countYellow">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">🔴 Rojas</div>
+                <div class="stat-value" id="countRed">0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">⚪ Blancas</div>
+                <div class="stat-value" id="countWhite">0</div>
+            </div>
+        </div>
+        
+        <div id="configSection" style="display: none;" class="config-section">
+            <h3>⚙️ Configuración de Alertas</h3>
+            
+            <div class="config-group verde collapsed">
+                <h4 onclick="toggleConfig(this)">🟢 Agregar Cirugía Verde (Planificada/Esperada)</h4>
+                <div class="config-content">
+                    <div class="input-group">
+                        <input type="text" id="inputCirugiaVerde" placeholder="Nombre de la prestación">
+                        <button class="btn-small" onclick="addCirugiaVerde()">Agregar</button>
+                    </div>
+                    <div class="list-items" id="listCirugiasVerdes"></div>
+                </div>              
+            </div>
+            
+            <div class="config-group amarillo collapsed">
+                <h4 onclick="toggleConfig(this)">🟡 Agregar Cirugía Amarilla (Alerta Moderada)</h4>
+                <div class="config-content">
+                    <div class="input-group">
+                        <input type="text" id="inputCirugiaAmarilla" placeholder="Nombre de la prestación">
+                        <button class="btn-small" onclick="addCirugiaAmarilla()">Agregar</button>
+                    </div>
+                <div class="list-items" id="listCirugiasAmarillas"></div>                
+                </div>
+            </div>
+            
+            <div class="config-group rojo collapsed">
+                <h4 onclick="toggleConfig(this)">🔴 Agregar Cirugía Roja (Alerta Crítica)</h4>
+                <div class="config-content">
+                    <div class="input-group">
+                        <input type="text" id="inputCirugiaRoja" placeholder="Nombre de la prestación">
+                        <button class="btn-small" onclick="addCirugiaRoja()">Agregar</button>
+                    </div>
+                <div class="list-items" id="listCirugiasRojas"></div>
+                </div>
+            </div>
+            
+            <button class="btn" onclick="reAnalyze()" style="width: 100%;">🔄 Re-analizar con Nuevas Configuraciones</button>
+        </div>
+        
+        <div id="resultsSection" class="results-section" style="display: none;">
+    <div class="collapsible-section collapsed">
+        <div class="collapsible-header" onclick="toggleSection(this)">
+            📋 Listado Filtrado (Reintervenciones)
+        </div>
+        <div class="collapsible-content">
+            <div style="margin: 20px 0; display: flex; gap: 15px; align-items: center;">
+                <label style="font-weight: 600; color: #495057;">Filtrar pacientes:</label>
+                <select id="colorFilter" onchange="applyColorFilter()" style="padding: 8px 12px; border: 2px solid #dee2e6; border-radius: 6px; font-size: 14px; cursor: pointer;">
+                    <option value="all">Todos los pacientes</option>
+                    <option value="red">🔴 Pacientes con alerta roja</option>
+                    <option value="yellow">🟡 Pacientes con alerta amarilla</option>
+                    <option value="red-yellow">🔴🟡 Pacientes con alerta roja o amarilla</option>
+                </select>
+            </div>
+            <div class="table-wrapper">
+                <table id="resultsTable">
+                    <thead>
+                        <tr>
+                            <th>ID Ingreso</th>
+                            <th>ID Protocolo</th>
+                            <th>RUT Paciente</th>
+                            <th>Nombre Paciente</th>
+                            <th>Fecha Cirugía</th>
+                            <th>Estado</th>
+                            <th>Cód. Prestación</th>
+                            <th>Prestación</th>
+                            <th>RUT Cirujano</th>
+                            <th>Nombre Cirujano</th>
+                            <th>ID Paciente</th>
+                            <th>Reintervención No Planificada</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+            <button class="btn" onclick="downloadCheckedRows()" style="margin-top: 20px; width: 100%;">📥 Descargar Filas Marcadas</button>
+        </div>
+    </div>
+    
+    <div class="collapsible-section collapsed">
+        <div class="collapsible-header" onclick="toggleSection(this)">
+            📄 Listado Completo (Sin Filtros)
+        </div>
+        <div class="collapsible-content">
+            <div class="table-wrapper">
+                <table id="completeTable">
+                    <thead>
+                        <tr>
+                            <th>ID Ingreso</th>
+                            <th>ID Protocolo</th>
+                            <th>RUT Paciente</th>
+                            <th>Nombre Paciente</th>
+                            <th>Fecha Cirugía</th>
+                            <th>Estado</th>
+                            <th>Cód. Prestación</th>
+                            <th>Prestación</th>
+                            <th>RUT Cirujano</th>
+                            <th>Nombre Cirujano</th>
+                            <th>ID Paciente</th>
+                            <th>Reintervención No Planificada</th>
+                        </tr>
+                    </thead>
+                    <tbody id="completeTableBody"></tbody>
+                </table>
             </div>
         </div>
     </div>
+</div>
+    </div>
 
     <script>
-        let reingresosData = null;
-        let reintervencionesData = null;
-        
-        console.log('Script cargado correctamente');
-        
-        document.getElementById('reingresosFile').addEventListener('change', function(e) {
-            console.log('Evento change disparado');
-            const file = e.target.files[0];
-            console.log('Archivo seleccionado:', file);
+        let CIRUGIAS_VERDE = [
+            'DILATACION DE ESTENOSIS BENIGNAS O MALIG',
+            'PUNCION LUMBAR',
+            'PAB-INSTALACION DE CATETER',
+            'VASECTOMIA BILATERAL, (PROC. AUT.) (LA V',
+            'RETIRO CATETER QMT',
+            'INST CATETER HEMODIALISIS TUNELIZADO',
+            'BIOPSIA OSEA QUIRURGICA',
+            'CATETER CVC SUBCL O YUGULAR PUNCION',
+            'ANGIOPLASTIA INTRALUMINAL CORON. PROC. C',
+            'CINECORONARIOGRAFIA DER./ IZQ. INCLUYE V',
+            'CIRUGIA BARIÁTRICA BY PASS GASTRICO POR',
+            'COLANGIOPANCREATOGRAFIA RETROGRADA ENDOS',
+            'INSTALACION PROTESIS VIA BILIAR O PANCR',
+            'COLECISTECTOMIA POR VIDEOLAPAROSCOPIA,',
+            'EXTRACCION ENDOSCOPICA DE CALCULOS BILIA',
+            'IMPLANTACION DE MARCAPASO C/ELECTROD. IN',
+            'RESECCION INTESTINAL CON OSTOMIAS PROXIMAL Y DISTAL',
+            'ESCOLIOSIS,TRAT.QUIR.,CUALQUIER VIA DE A',
+            'ENDOPROTESIS TOTAL DE CADERA',
+            'RECONSTRUCCION MAMARIA',
+            'CONIZACION Y/O AMPUTACION DEL CUELLO, DI',
+            'RECONSTITUCION  TRANSITO POST OPERACION',
+            'LAMINECTOMIA DESCOMPRESIVA',
+            'ADENOMA O CANCER PROSTATICO, RESECCION E',
+            'IMPLANTE RESINCRONIZADOR DESFIBRILADOR',
+            'IMPLANTE RESINCRONIZADOR (CRT-P)',
+            'INSTALACION CATETER RESERV SUB CUT QMT',
+            'ANGIOPLASTIA INTRALUMINAL PERIFERICA PRO',
+            'RESECCION AMPLIA DE TUMOR MALIGNO Y DISECCION GANGLIONAR',
+            'ABLACION CON CORRIENTE CONTINUA O CON RA',
+            'RINOPLASTIA Y/O SEPTOPLASTIA, CUALQUIER',
+            'PROCURAMIENTO CORAZON/PULMON/VALVULAS',
+            'PROCURAMIENTO RIÑONES',
+            'PROCURAMIENTO CORNEAS',
+            'RESECCION ENDOSCOPICA DE CANCER VESICAL',
+            'QUERATECTOMIA FOTORREFRACTIVA O FOTOTERA',
+            'FACOERESIS EXTRACAPSULAR CON IMPLANTE D',
+            'ERCP C/PAPILO',
+            'DP - IMPLANTACION DE MARCAPASO BICAMERAL',
+            'DP - ANGIOPLASTIA INTRALUMINAL CORONARIA',
+            'PAD COLELITIASIS',
+            'PAD DE VARICES',
+            'HERNIA ABDOMINAL POR ACCESO MININVASIVO',
+            'SAFENECTOMIA UNILAT',
+            'PAD QUERATECTOMIA FOTORREFRACTIVA O QUER',
+            'PAD CATARATAS',
+            'PAD LITOTRIPSIA EXTRACORPOREA',
+            'DP - AORTOGRAFÍA, EN ADULTOS O NIÑOS (A.'
             
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    console.log('Archivo leído');
-                    const workbook = XLSX.read(e.target.result, { type: 'binary' });
-                    console.log('Workbook creado:', workbook.SheetNames);
-                    
-                    const possibleSheets = ['Exportar Hoja de Trabajo', 'MEDIC'];
-                    const sheetName = possibleSheets.find(name => workbook.Sheets[name]) || workbook.SheetNames[0];
-                    console.log('Usando hoja:', sheetName);
-                    
-                    const sheet = workbook.Sheets[sheetName];
-                    reingresosData = XLSX.utils.sheet_to_json(sheet);
-                    console.log('Datos cargados:', reingresosData.length, 'registros');
-                    
-                    checkReady();
-                };
-                reader.readAsBinaryString(file);
-            }
-        });
+        ];
         
-        document.getElementById('reintervencionesFile').addEventListener('change', function(e) {
+        let CIRUGIAS_AMARILLA = [
+            'ASEO QUIRURGICO MAYOR',
+            'PAB-CURACION POR MEDICO, QUEMADURA O SIM',
+            'CAUTERIZACION UNI O BILATERAL DE VASOS E'
+        ];
+        
+        let CIRUGIAS_ROJA = [
+            'LAP-LAPAROTOMIA EXPLORADA',
+            'LAP-PERITONITIS DEFUSA AGUDA,TRAT.QUIR.',
+            'PAB-HERIDA O DEHISCENCIA DE SUTURA DE PA',
+            'LAPAROTOMIA EXPLORADORA, C/S LIBERACION',
+            'REPARACION DE FISTULA LCR',
+            'LAPAROTOMIA EXPLORADORA, LAPAROSCOPICA',
+            'DP - REPOSICION DE ELECTRODOS DE MARCAPA	'
+        ];
+        
+        let workbook = null;
+        let rawData = [];
+        let allClassifiedRecords = [];
+        let completeOriginalData = [];
+        
+        document.getElementById('excelFile').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    const workbook = XLSX.read(e.target.result, { type: 'binary' });
-                    const sheetName = workbook.SheetNames[0];
-                    const sheet = workbook.Sheets[sheetName];
-                    reintervencionesData = XLSX.utils.sheet_to_json(sheet);
-                    console.log('Reintervenciones cargadas:', reintervencionesData.length);
-                    checkReady();
+                    workbook = XLSX.read(e.target.result, { type: 'binary' });
+                    document.getElementById('analyzeBtn').disabled = false;
                 };
                 reader.readAsBinaryString(file);
             }
         });
         
-        function checkReady() {
-            const btn = document.getElementById('analyzeBtn');
-            const isReady = !!reingresosData;
-            console.log('Verificando estado:', {
-                reingresosData: !!reingresosData,
-                isReady: isReady
-            });
-            btn.disabled = !isReady;
-            console.log('Botón disabled:', btn.disabled);
+        document.getElementById('analyzeBtn').addEventListener('click', analyzeData);
+        
+        function addCirugiaVerde() {
+            const input = document.getElementById('inputCirugiaVerde');
+            const nombre = input.value.trim().toUpperCase();
+            if (nombre && !CIRUGIAS_VERDE.includes(nombre)) {
+                CIRUGIAS_VERDE.push(nombre);
+                input.value = '';
+                updateListDisplay();
+            }
         }
         
-        document.getElementById('analyzeBtn').addEventListener('click', function() {
-            console.log('Botón clickeado!');
-            alert('Análisis iniciado!');
+        function addCirugiaAmarilla() {
+            const input = document.getElementById('inputCirugiaAmarilla');
+            const nombre = input.value.trim().toUpperCase();
+            if (nombre && !CIRUGIAS_AMARILLA.includes(nombre)) {
+                CIRUGIAS_AMARILLA.push(nombre);
+                input.value = '';
+                updateListDisplay();
+            }
+        }
+        
+        function addCirugiaRoja() {
+            const input = document.getElementById('inputCirugiaRoja');
+            const nombre = input.value.trim().toUpperCase();
+            if (nombre && !CIRUGIAS_ROJA.includes(nombre)) {
+                CIRUGIAS_ROJA.push(nombre);
+                input.value = '';
+                updateListDisplay();
+            }
+        }
+        
+        function removeCirugiaVerde(nombre) {
+            const index = CIRUGIAS_VERDE.indexOf(nombre);
+            if (index > -1) {
+                CIRUGIAS_VERDE.splice(index, 1);
+                updateListDisplay();
+            }
+        }
+        
+        function removeCirugiaAmarilla(nombre) {
+            const index = CIRUGIAS_AMARILLA.indexOf(nombre);
+            if (index > -1) {
+                CIRUGIAS_AMARILLA.splice(index, 1);
+                updateListDisplay();
+            }
+        }
+        
+        function removeCirugiaRoja(nombre) {
+            const index = CIRUGIAS_ROJA.indexOf(nombre);
+            if (index > -1) {
+                CIRUGIAS_ROJA.splice(index, 1);
+                updateListDisplay();
+            }
+        }
+        
+        function updateListDisplay() {
+            const listVerdes = document.getElementById('listCirugiasVerdes');
+            const listAmarillas = document.getElementById('listCirugiasAmarillas');
+            const listRojas = document.getElementById('listCirugiasRojas');
+            
+            if (listVerdes) {
+                listVerdes.innerHTML = CIRUGIAS_VERDE.map(c => 
+                    `<span class="list-item verde">${c}<button class="btn-remove" onclick="removeCirugiaVerde('${c.replace(/'/g, "\\'")}')">×</button></span>`
+                ).join('');
+            }
+            
+            if (listAmarillas) {
+                listAmarillas.innerHTML = CIRUGIAS_AMARILLA.map(c => 
+                    `<span class="list-item amarillo">${c}<button class="btn-remove" onclick="removeCirugiaAmarilla('${c.replace(/'/g, "\\'")}')">×</button></span>`
+                ).join('');
+            }
+            
+            if (listRojas) {
+                listRojas.innerHTML = CIRUGIAS_ROJA.map(c => 
+                    `<span class="list-item rojo">${c}<button class="btn-remove" onclick="removeCirugiaRoja('${c.replace(/'/g, "\\'")}')">×</button></span>`
+                ).join('');
+            }
+        }
+        
+        function reAnalyze() {
+            if (rawData.length > 0) {
+                processData(rawData);
+                
+            }
+        }
+        function toggleConfig(element) {
+            const configGroup = element.parentElement;
+            configGroup.classList.toggle('collapsed');
+        }
+        
+        function toggleSection(element) {
+            const section = element.parentElement;
+            section.classList.toggle('collapsed');
+        }
+        
+        function parseDate(dateStr) {
+    if (!dateStr) return null;
+
+    // Handle Excel numeric serials
+    if (typeof dateStr === 'number') {
+        const excelEpoch = new Date(1899, 11, 30);
+        return new Date(excelEpoch.getTime() + dateStr * 86400000);
+    }
+
+    if (typeof dateStr === 'string') {
+        // Normalize both '-' and '/' separators to '/'
+        const normalized = dateStr.replace(/-/g, '/').trim();
+
+        // Split by /, space, or :
+        const parts = normalized.split(/[\/\s:]/);
+
+        if (parts.length >= 3) {
+            const day = parseInt(parts[0]);
+            const month = parseInt(parts[1]) - 1;
+            const year = parts[2].length === 2 ? 2000 + parseInt(parts[2]) : parseInt(parts[2]);
+            const hour = parts[3] ? parseInt(parts[3]) : 0;
+            const minute = parts[4] ? parseInt(parts[4]) : 0;
+            const second = parts[5] ? parseInt(parts[5]) : 0;
+
+            const date = new Date(year, month, day, hour, minute, second);
+
+            // Return only if valid
+            return isNaN(date.getTime()) ? null : date;
+        }
+    }
+
+    return null;
+}
+
+        
+        function normalizeText(text) {
+            if (!text) return '';
+            return text.toString().trim().toUpperCase();
+        }
+        
+        function getYearMonth(date) {
+            if (!date) return null;
+            return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        }
+        
+        function analyzeData() {
+            if (!workbook) return;
+            
+            const possibleSheets = ['Exportar Hoja de Trabajo', 'MEDIC'];
+
+            // Find the first that exists in the workbook
+            const sheetName = possibleSheets.find(name => workbook.Sheets[name]);
+
+            if (!sheetName) {
+                throw new Error('No valid sheet found. Expected "Exportar Hoja de Trabajo" or "MEDIC".');
+            }
+            
+            const sheet = workbook.Sheets[sheetName];
+            const data = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null });
+            
+            rawData = [];
+            let totalRecords = 0;
+            
+            for (let i = 1; i < data.length; i++) {
+                const row = data[i];
+                
+                const idIngreso = row[0];
+                const idProtocolo = row[1];
+                const rutPaciente = row[2];
+                const paciente = row[3];
+                const fechaCirugia = row[4];
+                const estado = row[5];
+                const codPrestacion = row[6];
+                const prestacion = row[7];
+                const rutCirujano = row[8];
+                const nombreCirujano = row[9];
+                const idPaciente = row[10];
+                
+                if (!idIngreso) continue;
+                
+                totalRecords++;
+                
+                const fechaDate = parseDate(fechaCirugia);
+                
+                rawData.push({
+                    idIngreso,
+                    idProtocolo,
+                    rutPaciente,
+                    paciente,
+                    fechaCirugia,
+                    fechaDate,
+                    estado,
+                    codPrestacion,
+                    prestacion,
+                    rutCirujano,
+                    nombreCirujano,
+                    idPaciente
+                });
+            }
+            
+            console.log('Total rawData after loop:', rawData.length);
+            document.getElementById('totalRecords').textContent = totalRecords;
+            completeOriginalData = rawData.map(r => ({...r}));
+            console.log('rawData length:', rawData.length);
+            console.log('completeOriginalData length:', completeOriginalData.length);
+            processData(rawData);
+        }
+        
+        function processData(data) {
+            let mostRecentDate = null;
+            data.forEach(record => {
+                if (record.fechaDate) {
+                    if (!mostRecentDate || record.fechaDate > mostRecentDate) {
+                        mostRecentDate = record.fechaDate;
+                    }
+                }
+            });
+            
+            if (!mostRecentDate) {
+                alert('No se encontraron fechas válidas en el archivo');
+                return;
+            }
+            
+            const lastMonth = getYearMonth(mostRecentDate);
+            
+            const patientGroups = {};
+            data.forEach(record => {
+                if (!patientGroups[record.rutPaciente]) {
+                    patientGroups[record.rutPaciente] = [];
+                }
+                patientGroups[record.rutPaciente].push(record);
+            });
+            
+            let removedNoMonth = 0;
+            let removedDays = 0;
+            const filteredRecords = [];
+            
+            Object.entries(patientGroups).forEach(([rut, records]) => {
+                records.sort((a, b) => a.fechaDate - b.fechaDate);
+                
+                const surgeriesInLastMonth = records.filter(r => getYearMonth(r.fechaDate) === lastMonth);
+                
+                if (surgeriesInLastMonth.length === 0) {
+                    removedNoMonth += records.length;
+                    return;
+                }
+                
+                const validSurgeries = new Set();
+                
+                surgeriesInLastMonth.forEach(referenceSurgery => {
+                    records.forEach(record => {
+                        const daysDiff = Math.floor((referenceSurgery.fechaDate - record.fechaDate) / (1000 * 60 * 60 * 24));
+                        
+                        if (daysDiff >= 0 && daysDiff <= 30) {
+                            validSurgeries.add(record);
+                        }
+                    });
+                });
+                
+                const validSurgeriesArray = Array.from(validSurgeries);
+                
+                if (validSurgeriesArray.length >= 2) {
+                    filteredRecords.push(...validSurgeriesArray);
+                    removedDays += records.length - validSurgeriesArray.length;
+                } else {
+                    removedNoMonth += records.length;
+                }
+            });
+            
+            filteredRecords.sort((a, b) => {
+                if (a.rutPaciente !== b.rutPaciente) {
+                    return a.rutPaciente.localeCompare(b.rutPaciente);
+                }
+                return a.fechaDate - b.fechaDate;
+            });
+            
+            const classifiedRecords = [];
+            const patientSurgeries = {};
+            
+            filteredRecords.forEach(record => {
+                if (!patientSurgeries[record.rutPaciente]) {
+                    patientSurgeries[record.rutPaciente] = [];
+                }
+                patientSurgeries[record.rutPaciente].push(record);
+            });
+            
+            Object.values(patientSurgeries).forEach(surgeries => {
+                for (let i = 0; i < surgeries.length; i++) {
+                    const record = surgeries[i];
+                    let colorClass = '';
+                    
+                    const prestacionNorm = normalizeText(record.prestacion);
+                    
+                    if (CIRUGIAS_ROJA.some(c => prestacionNorm.includes(normalizeText(c)))) {
+                        colorClass = 'red';
+                    } else if (CIRUGIAS_AMARILLA.some(c => prestacionNorm.includes(normalizeText(c)))) {
+                        colorClass = 'yellow';
+                    } else if (CIRUGIAS_VERDE.some(c => prestacionNorm.includes(normalizeText(c)))) {
+                        colorClass = 'green';
+                    } else {
+                        if (i > 0) {
+                            const prevRecord = surgeries[i - 1];
+                            const hoursDiff = (record.fechaDate - prevRecord.fechaDate) / (1000 * 60 * 60);
+                            if (hoursDiff < 3) {
+                                colorClass = 'green';
+                            }
+                        }
+                    }
+                    
+                    classifiedRecords.push({
+                        ...record,
+                        colorClass
+                    });
+                }
+            });
+            
+            const countGreen = classifiedRecords.filter(r => r.colorClass === 'green').length;
+            const countYellow = classifiedRecords.filter(r => r.colorClass === 'yellow').length;
+            const countRed = classifiedRecords.filter(r => r.colorClass === 'red').length;
+            const countWhite = classifiedRecords.filter(r => !r.colorClass).length;
+            
+            document.getElementById('uniquePatients').textContent = new Set(classifiedRecords.map(r => r.rutPaciente)).size;
+            document.getElementById('removedNoMonth').textContent = removedNoMonth;
+            document.getElementById('removedDays').textContent = removedDays;
+            document.getElementById('countGreen').textContent = countGreen;
+            document.getElementById('countYellow').textContent = countYellow;
+            document.getElementById('countRed').textContent = countRed;
+            document.getElementById('countWhite').textContent = countWhite;
+            
+            document.getElementById('statsSection').style.display = 'flex';
+            document.getElementById('configSection').style.display = 'block';
+            document.getElementById('resultsSection').style.display = 'block';
+            
+            allClassifiedRecords = classifiedRecords;
+            
+            updateListDisplay();
+            displayResults(classifiedRecords);
+            displayCompleteList(completeOriginalData);
+            console.log('BEFORE displayCompleteList - completeOriginalData length:', completeOriginalData.length);
+            console.log('BEFORE displayCompleteList - first 3 records:', completeOriginalData.slice(0, 3));
+        }
+        
+        function applyColorFilter() {
+    // Save current checkbox states from BOTH tables
+    const checkedIds = new Set();
+    document.querySelectorAll('.reintervencion-check:checked').forEach(cb => {
+        checkedIds.add(cb.getAttribute('data-id'));
+    });
+    console.log('Saved checked IDs:', Array.from(checkedIds));
+            
+    const filterValue = document.getElementById('colorFilter').value;
+    
+    let filteredRecords = allClassifiedRecords;
+    
+    if (filterValue !== 'all') {
+        const patientsWithAlert = new Set();
+        
+        if (filterValue === 'red') {
+            allClassifiedRecords.forEach(r => {
+                if (r.colorClass === 'red') {
+                    patientsWithAlert.add(r.rutPaciente);
+                }
+            });
+        } else if (filterValue === 'yellow') {
+            allClassifiedRecords.forEach(r => {
+                if (r.colorClass === 'yellow') {
+                    patientsWithAlert.add(r.rutPaciente);
+                }
+            });
+        } else if (filterValue === 'red-yellow') {
+            allClassifiedRecords.forEach(r => {
+                if (r.colorClass === 'red' || r.colorClass === 'yellow') {
+                    patientsWithAlert.add(r.rutPaciente);
+                }
+            });
+        }
+        
+        filteredRecords = allClassifiedRecords.filter(r => patientsWithAlert.has(r.rutPaciente));
+    }
+    
+displayResults(filteredRecords);
+    
+    // Restore checkbox states after DOM updates
+    setTimeout(() => {
+        console.log('Attempting to restore:', Array.from(checkedIds));
+        console.log('Available checkboxes:', document.querySelectorAll('input[data-id]').length);
+        checkedIds.forEach(id => {
+            // Restore in BOTH tables
+            document.querySelectorAll(`input[data-id="${id}"]`).forEach(checkbox => {
+                console.log('Restoring', id, 'in', checkbox.closest('table').id);
+                checkbox.checked = true;
+            });
         });
+    }, 10);
+}
+        function syncCheckboxes(checkbox) {
+        const dataId = checkbox.getAttribute('data-id');
+        const isChecked = checkbox.checked;
+        
+        // Sync all checkboxes with the same data-id
+        document.querySelectorAll(`input[data-id="${dataId}"]`).forEach(cb => {
+            cb.checked = isChecked;
+        });
+    }
+
+        
+        function displayResults(records) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            
+            let currentRut = null;
+            
+            records.forEach(record => {
+                const tr = document.createElement('tr');
+                
+                if (currentRut !== record.rutPaciente) {
+                    tr.classList.add('patient-group');
+                    currentRut = record.rutPaciente;
+                }
+                
+                if (record.colorClass === 'green') {
+                    tr.classList.add('highlight-green');
+                } else if (record.colorClass === 'yellow') {
+                    tr.classList.add('highlight-yellow');
+                } else if (record.colorClass === 'red') {
+                    tr.classList.add('highlight-red');
+                }
+                
+                const formatDate = (dateStr) => {
+                    const date = parseDate(dateStr);
+                    if (!date) return dateStr || '';
+                    return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+                };
+                
+                tr.innerHTML = `
+                    <td>${record.idIngreso || ''}</td>
+                    <td>${record.idProtocolo || ''}</td>
+                    <td>${record.rutPaciente || ''}</td>
+                    <td>${record.paciente || ''}</td>
+                    <td>${formatDate(record.fechaCirugia)}</td>
+                    <td>${record.estado || ''}</td>
+                    <td>${record.codPrestacion || ''}</td>
+                    <td>${record.prestacion || ''}</td>
+                    <td>${record.rutCirujano || ''}</td>
+                    <td>${record.nombreCirujano || ''}</td>
+                    <td>${record.idPaciente || ''}</td>
+                    <td style="text-align: center;"><input type="checkbox" class="reintervencion-check" data-id="${record.idIngreso}-${record.idProtocolo}" data-record='${JSON.stringify(record).replace(/'/g, "&#39;")}' onchange="syncCheckboxes(this)" /></td>
+                `;
+                
+                tbody.appendChild(tr);
+            });
+        }
+function downloadCheckedRows() {
+        const checkboxes = document.querySelectorAll('.reintervencion-check:checked');
+        
+        if (checkboxes.length === 0) {
+            alert('No hay filas marcadas para descargar');
+            return;
+        }
+        
+        const selectedRecords = [];
+        const seenIds = new Set();
+        
+        checkboxes.forEach(cb => {
+            const dataId = cb.getAttribute('data-id');
+            if (!seenIds.has(dataId)) {
+                seenIds.add(dataId);
+                const record = JSON.parse(cb.getAttribute('data-record'));
+                selectedRecords.push(record);
+            }
+        });
+        
+        const ws_data = [
+            ['ID_INGRESO', 'ID_PROTOCOLO', 'RUT_PACIENTE', 'PACIENTE', 'FECHA_CIRUGIA', 'ESTADO', 'COD_PRESTACION', 'PRESTACION', 'RUT_1ER_CIR', 'NOMBRE_1ER_CIR', 'ID_PACIENTE']
+        ];
+        
+        selectedRecords.forEach(record => {
+            const formatDate = (dateStr) => {
+                const date = parseDate(dateStr);
+                if (!date) return dateStr || '';
+                return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+            };
+            
+            ws_data.push([
+                record.idIngreso || '',
+                record.idProtocolo || '',
+                record.rutPaciente || '',
+                record.paciente || '',
+                formatDate(record.fechaCirugia),
+                record.estado || '',
+                record.codPrestacion || '',
+                record.prestacion || '',
+                record.rutCirujano || '',
+                record.nombreCirujano || '',
+                record.idPaciente || ''
+            ]);
+        });
+        
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(ws_data);
+        XLSX.utils.book_append_sheet(wb, ws, 'Reintervenciones');
+        
+        const fecha = new Date().toISOString().slice(0, 10);
+        XLSX.writeFile(wb, `Reintervenciones_Marcadas_${fecha}.xlsx`);
+    }
+        
+    function displayCompleteList(records) {
+    console.log('displayCompleteList received records:', records.length);
+    const tbody = document.getElementById('completeTableBody');
+    tbody.innerHTML = '';
+    
+    const sortedRecords = [...records].sort((a, b) => {
+        const rutA = a.rutPaciente || '';
+        const rutB = b.rutPaciente || '';
+        if (rutA !== rutB) {
+            return rutA.localeCompare(rutB);
+        }
+        if (!a.fechaDate && !b.fechaDate) return 0;
+        if (!a.fechaDate) return 1;
+        if (!b.fechaDate) return -1;
+        return a.fechaDate - b.fechaDate;
+    });
+    console.log('sortedRecords length:', sortedRecords.length);
+    let currentRut = null;
+    
+    sortedRecords.forEach(record => {
+        const tr = document.createElement('tr');
+        
+        if (currentRut !== record.rutPaciente) {
+            tr.classList.add('patient-group');
+            currentRut = record.rutPaciente;
+        }
+        
+        const formatDate = (dateStr) => {
+            const date = parseDate(dateStr);
+            if (!date) return dateStr || '';
+            return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+        };
+        
+        tr.innerHTML = `
+            <td>${record.idIngreso || ''}</td>
+            <td>${record.idProtocolo || ''}</td>
+            <td>${record.rutPaciente || ''}</td>
+            <td>${record.paciente || ''}</td>
+            <td>${formatDate(record.fechaCirugia)}</td>
+            <td>${record.estado || ''}</td>
+            <td>${record.codPrestacion || ''}</td>
+            <td>${record.prestacion || ''}</td>
+            <td>${record.rutCirujano || ''}</td>
+            <td>${record.nombreCirujano || ''}</td>
+            <td>${record.idPaciente || ''}</td>
+            <td style="text-align: center;"><input type="checkbox" class="reintervencion-check" data-id="${record.idIngreso}-${record.idProtocolo}" data-record='${JSON.stringify(record).replace(/'/g, "&#39;")}' onchange="syncCheckboxes(this)" /></td>
+        `;
+        
+        tbody.appendChild(tr);
+    });
+console.log('Total rows added to completeTableBody:', tbody.children.length);
+}
+    
     </script>
 </body>
 </html>
