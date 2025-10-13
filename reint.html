@@ -1013,22 +1013,23 @@
                 }
             });
         } else if (filterValue === 'red-yellow') {
-                allClassifiedRecords.forEach(r => {
-                    if (r.colorClass === 'red' || r.colorClass === 'yellow') {
-                        patientsWithAlert.add(r.rutPaciente);
+            allClassifiedRecords.forEach(r => {
+                if (r.colorClass === 'red' || r.colorClass === 'yellow') {
+                    patientsWithAlert.add(r.rutPaciente);
                 }
             });
         } else if (filterValue === 'green') {
-                allClassifiedRecords.forEach(r => {
-                    if (r.colorClass === 'green') {
-                        patientsWithAlert.add(r.rutPaciente);
+            allClassifiedRecords.forEach(r => {
+                if (r.colorClass === 'green') {
+                    patientsWithAlert.add(r.rutPaciente);
+                }
+            });
         }
-    });
         
         filteredRecords = allClassifiedRecords.filter(r => patientsWithAlert.has(r.rutPaciente));
     }
     
-displayResults(filteredRecords);
+    displayResults(filteredRecords);
     
     // Restore checkbox states after DOM updates
     setTimeout(() => {
