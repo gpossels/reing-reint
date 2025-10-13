@@ -501,6 +501,7 @@
                     <option value="red">🔴 Pacientes con alerta roja</option>
                     <option value="yellow">🟡 Pacientes con alerta amarilla</option>
                     <option value="red-yellow">🔴🟡 Pacientes con alerta roja o amarilla</option>
+                    <option value="green">🟢 Pacientes con alerta verde</option>
                 </select>
             </div>
             <div class="table-wrapper">
@@ -1012,12 +1013,17 @@
                 }
             });
         } else if (filterValue === 'red-yellow') {
-            allClassifiedRecords.forEach(r => {
-                if (r.colorClass === 'red' || r.colorClass === 'yellow') {
-                    patientsWithAlert.add(r.rutPaciente);
+                allClassifiedRecords.forEach(r => {
+                    if (r.colorClass === 'red' || r.colorClass === 'yellow') {
+                        patientsWithAlert.add(r.rutPaciente);
                 }
             });
+        } else if (filterValue === 'green') {
+                allClassifiedRecords.forEach(r => {
+                    if (r.colorClass === 'green') {
+                        patientsWithAlert.add(r.rutPaciente);
         }
+    });
         
         filteredRecords = allClassifiedRecords.filter(r => patientsWithAlert.has(r.rutPaciente));
     }
