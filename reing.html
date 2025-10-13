@@ -419,25 +419,34 @@
         
         document.getElementById('reingresosFile').addEventListener('change', function(e) {
             const file = e.target.files[0];
+            console.log('Archivo de reingresos seleccionado:', file ? file.name : 'ninguno');
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    const workbook = XLSX.read(e.target.result, { type: 'binary', cellDates: true });
-                    
-                    // Look for valid sheet, ignore "SQL"
-                    const possibleSheets = ['Exportar Hoja de Trabajo', 'MEDIC'];
-                    const sheetName = possibleSheets.find(name => workbook.Sheets[name] && name !== 'SQL');
-                    
-                    if (!sheetName) {
-                        alert('No se encontró una hoja válida en el archivo de reingresos');
-                        return;
+                    try {
+                        const workbook = XLSX.read(e.target.result, { type: 'binary', cellDates: true });
+                        console.log('Hojas disponibles:', workbook.SheetNames);
+                        
+                        // Look for valid sheet, ignore "SQL"
+                        const possibleSheets = ['Exportar Hoja de Trabajo', 'MEDIC'];
+                        const sheetName = possibleSheets.find(name => workbook.Sheets[name] && name !== 'SQL');
+                        
+                        console.log('Hoja seleccionada:', sheetName);
+                        
+                        if (!sheetName) {
+                            alert('No se encontró una hoja válida en el archivo de reingresos. Hojas disponibles: ' + workbook.SheetNames.join(', '));
+                            return;
+                        }
+                        
+                        const sheet = workbook.Sheets[sheetName];
+                        reingresosData = XLSX.utils.sheet_to_json(sheet);
+                        
+                        console.log(`✓ Reingresos cargados: ${reingresosData.length} registros de la hoja "${sheetName}"`);
+                        checkIfReady();
+                    } catch (error) {
+                        console.error('Error al cargar reingresos:', error);
+                        alert('Error al leer el archivo de reingresos: ' + error.message);
                     }
-                    
-                    const sheet = workbook.Sheets[sheetName];
-                    reingresosData = XLSX.utils.sheet_to_json(sheet);
-                    
-                    console.log(`✓ Reingresos cargados: ${reingresosData.length} registros de la hoja "${sheetName}"`);
-                    checkIfReady();
                 };
                 reader.readAsBinaryString(file);
             }
@@ -445,25 +454,40 @@
         
         document.getElementById('reintervencionesFile').addEventListener('change', function(e) {
             const file = e.target.files[0];
+            console.log('Archivo de reintervenciones seleccionado:', file ? file.name : 'ninguno');
             if (file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    const workbook = XLSX.read(e.target.result, { type: 'binary', cellDates: true });
-                    
-                    // Get first non-SQL sheet
-                    const sheetName = workbook.SheetNames.find(name => name !== 'SQL') || workbook.SheetNames[0];
-                    const sheet = workbook.Sheets[sheetName];
-                    reintervencionesData = XLSX.utils.sheet_to_json(sheet);
-                    
-                    console.log(`✓ Reintervenciones cargadas: ${reintervencionesData.length} registros`);
-                    checkIfReady();
+                    try {
+                        const workbook = XLSX.read(e.target.result, { type: 'binary', cellDates: true });
+                        console.log('Hojas disponibles:', workbook.SheetNames);
+                        
+                        // Get first non-SQL sheet
+                        const sheetName = workbook.SheetNames.find(name => name !== 'SQL') || workbook.SheetNames[0];
+                        console.log('Hoja seleccionada:', sheetName);
+                        
+                        const sheet = workbook.Sheets[sheetName];
+                        reintervencionesData = XLSX.utils.sheet_to_json(sheet);
+                        
+                        console.log(`✓ Reintervenciones cargadas: ${reintervencionesData.length} registros`);
+                        checkIfReady();
+                    } catch (error) {
+                        console.error('Error al cargar reintervenciones:', error);
+                        alert('Error al leer el archivo de reintervenciones: ' + error.message);
+                    }
                 };
                 reader.readAsBinaryString(file);
             }
         });
         
         function checkIfReady() {
-            document.getElementById('analyzeBtn').disabled = !(reingresosData && reintervencionesData);
+            const isReady = !!(reingresosData && reintervencionesData);
+            console.log('Checking if ready:', {
+                reingresosData: reingresosData ? reingresosData.length : null,
+                reintervencionesData: reintervencionesData ? reintervencionesData.length : null,
+                isReady: isReady
+            });
+            document.getElementById('analyzeBtn').disabled = !isReady;
         }
         
         document.getElementById('analyzeBtn').addEventListener('click', analyzeData);
