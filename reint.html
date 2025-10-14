@@ -319,6 +319,41 @@
         .patient-group {
             border-top: 3px solid #667eea;
         }
+
+.rut-cell {
+            cursor: pointer;
+            position: relative;
+            transition: background-color 0.2s;
+        }
+        
+        .rut-cell:hover {
+            background-color: #e3f2fd !important;
+        }
+        
+        .rut-cell:active {
+            background-color: #bbdefb !important;
+        }
+        
+        .copy-feedback {
+            position: fixed;
+            background: #28a745;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 10000;
+            pointer-events: none;
+            animation: fadeInOut 1.5s ease-in-out;
+        }
+        
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateY(10px); }
+            20% { opacity: 1; transform: translateY(0); }
+            80% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-10px); }
+        }
+        
         .config-group h4 {
     cursor: pointer;
     user-select: none;
@@ -1088,7 +1123,7 @@
                 tr.innerHTML = `
                     <td>${record.idIngreso || ''}</td>
                     <td>${record.idProtocolo || ''}</td>
-                    <td>${record.rutPaciente || ''}</td>
+                    <td class="rut-cell" onclick="copyRUT(this, '${record.rutPaciente || ''}')" title="Click para copiar">${record.rutPaciente || ''}</td>
                     <td>${record.paciente || ''}</td>
                     <td>${formatDate(record.fechaCirugia)}</td>
                     <td>${record.estado || ''}</td>
@@ -1193,7 +1228,7 @@ function downloadCheckedRows() {
         tr.innerHTML = `
             <td>${record.idIngreso || ''}</td>
             <td>${record.idProtocolo || ''}</td>
-            <td>${record.rutPaciente || ''}</td>
+            <td class="rut-cell" onclick="copyRUT(this, '${record.rutPaciente || ''}')" title="Click para copiar">${record.rutPaciente || ''}</td>
             <td>${record.paciente || ''}</td>
             <td>${formatDate(record.fechaCirugia)}</td>
             <td>${record.estado || ''}</td>
@@ -1209,7 +1244,35 @@ function downloadCheckedRows() {
     });
 console.log('Total rows added to completeTableBody:', tbody.children.length);
 }
+
+function copyRUT(element, rut) {
+            if (!rut) return;
+            
+            // Copy to clipboard
+            navigator.clipboard.writeText(rut).then(() => {
+                // Show feedback message
+                const feedback = document.createElement('div');
+                feedback.className = 'copy-feedback';
+                feedback.textContent = `✓ RUT copiado: ${rut}`;
+                
+                // Position near the clicked cell
+                const rect = element.getBoundingClientRect();
+                feedback.style.left = rect.left + 'px';
+                feedback.style.top = (rect.top - 40) + 'px';
+                
+                document.body.appendChild(feedback);
+                
+                // Remove after animation
+                setTimeout(() => {
+                    feedback.remove();
+                }, 1500);
+            }).catch(err => {
+                alert('Error al copiar: ' + err);
+            });
+        }
     
+    </script>
+        
     </script>
 </body>
 </html>
