@@ -1200,7 +1200,13 @@ function reAnalyze() {
                 if (patientsWithSurgery.has(r.RUT_PACIENTE) || patientsWithRedAlert.has(r.RUT_PACIENTE)) {
                     r.markRed = true;
                 }
-                if (patientsWithYellowAlert.has(r.RUT_PACIENTE)) r.markYellow = true;
+                if (patientsWithYellowAlert.has(r.RUT_PACIENTE)) {
+                    // Check if this specific record has BOX TRANSITORIO (green alert that overrides yellow)
+                    const hasGreenCama = alertConfig.green.camas.includes(r.DESC_COD_CAMA);
+                    if (!hasGreenCama) {
+                        r.markYellow = true;
+                    }
+                }
                 if (patientsWithAlert.has(r.RUT_PACIENTE)) r.markGreen = true;
             });
             
@@ -1368,6 +1374,7 @@ function reAnalyze() {
     </script>
 </body>
 </html>
+
 
 
 
