@@ -323,36 +323,32 @@
             <button class="btn" id="analyzeBtn" disabled>Analizar Datos</button>
         </div>
         
-        <div class="config-section">
-            <div class="config-header">
+        <div class="config-section collapsible-section">
+            <div class="collapsible-header" onclick="toggleSection(this)">
                 ⚙️ Configuración de Alertas
             </div>
-            
+            <div class="collapsible-content">
             <div class="alert-config-grid">
                 <div class="alert-config-box red">
                     <div class="alert-config-title">🔴 Alertas Rojas</div>
                     
                     <div class="alert-input-group">
                         <label>DIAGNOSTICO_EGRESO:</label>
-                        <textarea id="redDiagnosticos">
-                            DOLOR AGUDO
-                            EMBOLIA PULMONAR
-                            EMBOLIA Y TROMBOSIS DE VENA NO ESPECIFICADA
-                        </textarea>
+                        <textarea id="redDiagnosticos">DOLOR AGUDO
+EMBOLIA PULMONAR
+EMBOLIA Y TROMBOSIS DE VENA NO ESPECIFICADA</textarea>
                         <div class="alert-help-text">Un valor por línea</div>
                     </div>
                     
                     <div class="alert-input-group">
                         <label>NOMBRE_PRESTACION_INGRESO:</label>
-                        <textarea id="redPrestaciones">
-                            LAP-LAPAROTOMIA EXPLORADA
-                            LAP-PERITONITIS DEFUSA AGUDA,TRAT.QUIR.
-                            PAB-HERIDA O DEHISCENCIA DE SUTURA DE PA
-                            LAPAROTOMIA EXPLORADORA, C/S LIBERACION
-                            REPARACION DE FISTULA LCR
-                            LAPAROTOMIA EXPLORADORA, LAPAROSCOPICA
-                            DP - REPOSICION DE ELECTRODOS DE MARCAPA
-                        </textarea>
+                        <textarea id="redPrestaciones">LAP-LAPAROTOMIA EXPLORADA
+LAP-PERITONITIS DEFUSA AGUDA,TRAT.QUIR.
+PAB-HERIDA O DEHISCENCIA DE SUTURA DE PA
+LAPAROTOMIA EXPLORADORA, C/S LIBERACION
+REPARACION DE FISTULA LCR
+LAPAROTOMIA EXPLORADORA, LAPAROSCOPICA
+DP - REPOSICION DE ELECTRODOS DE MARCAPA</textarea>
                         <div class="alert-help-text">Un valor por línea</div>
                     </div>
                 </div>
@@ -362,14 +358,12 @@
                     
                     <div class="alert-input-group">
                         <label>NOMBRE_PRESTACION_INGRESO:</label>
-                        <textarea id="yellowPrestaciones">
-                            RECONSTITUCION  TRANSITO POST OPERACION
-                            ENDOPROTESIS TOTAL DE CADERA
-                            ASEO QUIRURGICO MAYOR
-                            PAB-CURACION POR MEDICO, QUEMADURA O SIM
-                            CAUTERIZACION UNI O BILATERAL DE VASOS E
-                            ASEO QUIRURGICO MENOR
-                         </textarea>
+                        <textarea id="yellowPrestaciones">RECONSTITUCION  TRANSITO POST OPERACION
+ENDOPROTESIS TOTAL DE CADERA
+ASEO QUIRURGICO MAYOR
+PAB-CURACION POR MEDICO, QUEMADURA O SIM
+CAUTERIZACION UNI O BILATERAL DE VASOS E
+ASEO QUIRURGICO MENOR</textarea>
                         <div class="alert-help-text">Un valor por línea</div>
                     </div>
                 </div>
@@ -393,65 +387,64 @@ ABERTURA ARTIFICIAL, NO ESPECIFICADA</textarea>
                     
                     <div class="alert-input-group">
                         <label>NOMBRE_PRESTACION_INGRESO:</label>
-                        <textarea id="greenPrestaciones">
-                            INSTALACION CATETER RESERV SUB CUT QMT
-                            COLECISTECTOMIA POR VIDEOLAPAROSCOPIA
-                            HEMORROIDECTOMIA (INCLUYE OTRAS OPERA-
-                            GINECOMASTIA, CORRECCION PLASTICA
-                            VASECTOMIA BILATERAL, (PROC. AUT.) (LA V
-                            DILATACION DE ESTENOSIS BENIGNAS O MALIG
-                            PUNCION LUMBAR
-                            PAB-INSTALACION DE CATETER
-                            RETIRO CATETER QMT
-                            INST CATETER HEMODIALISIS TUNELIZADO
-                            BIOPSIA OSEA QUIRURGICA
-                            CATETER CVC SUBCL O YUGULAR PUNCION
-                            ANGIOPLASTIA INTRALUMINAL CORON. PROC. C
-                            CINECORONARIOGRAFIA DER./ IZQ. INCLUYE V
-                            CIRUGIA BARIÁTRICA BY PASS GASTRICO POR
-                            COLANGIOPANCREATOGRAFIA RETROGRADA ENDOS
-                            INSTALACION PROTESIS VIA BILIAR O PANCR
-                            COLECISTECTOMIA POR VIDEOLAPAROSCOPIA,
-                            EXTRACCION ENDOSCOPICA DE CALCULOS BILIA
-                            IMPLANTACION DE MARCAPASO C/ELECTROD. IN
-                            RESECCION INTESTINAL CON OSTOMIAS PROXIMAL Y DISTAL
-                            ESCOLIOSIS,TRAT.QUIR.,CUALQUIER VIA DE A
-                            ENDOPROTESIS TOTAL DE CADERA
-                            RECONSTRUCCION MAMARIA
-                            CONIZACION Y/O AMPUTACION DEL CUELLO, DI
-                            RECONSTITUCION TRANSITO POST OPERACION
-                            LAMINECTOMIA DESCOMPRESIVA
-                            ADENOMA O CANCER PROSTATICO, RESECCION E
-                            IMPLANTE RESINCRONIZADOR DESFIBRILADOR
-                            IMPLANTE RESINCRONIZADOR (CRT-P)
-                            INSTALACION CATETER RESERV SUB CUT QMT
-                            ANGIOPLASTIA INTRALUMINAL PERIFERICA PRO
-                            RESECCION AMPLIA DE TUMOR MALIGNO Y DISECCION GANGLIONAR
-                            ABLACION CON CORRIENTE CONTINUA O CON RA
-                            RINOPLASTIA Y/O SEPTOPLASTIA, CUALQUIER
-                            PROCURAMIENTO CORAZON/PULMON/VALVULAS
-                            PROCURAMIENTO RIÑONES
-                            PROCURAMIENTO CORNEAS
-                            RESECCION ENDOSCOPICA DE CANCER VESICAL
-                            QUERATECTOMIA FOTORREFRACTIVA O FOTOTERA
-                            PAD QUERATECTOMIA FOTORREFRACTIVA O QUER
-                            FACOERESIS EXTRACAPSULAR CON IMPLANTE D
-                            PAD CATARATAS
-                            ERCP C/PAPILO
-                            DP - IMPLANTACION DE MARCAPASO BICAMERAL
-                            DP - ANGIOPLASTIA INTRALUMINAL CORONARIA
-                            PAD COLELITIASIS
-                            PAD DE VARICES
-                            HERNIA ABDOMINAL POR ACCESO MININVASIVO
-                            SAFENECTOMIA UNILAT
-                            PAD LITOTRIPSIA EXTRACORPOREA
-                            DP - AORTOGRAFÍA, EN ADULTOS O NIÑOS (A.
-                            ESCROTO, PLASTIA DE, PROC. COMPLETO
-                            GINECOMASTIA, CORRECCION PLASTICA   
-                        </textarea>
+                        <textarea id="greenPrestaciones">INSTALACION CATETER RESERV SUB CUT QMT
+COLECISTECTOMIA POR VIDEOLAPAROSCOPIA
+HEMORROIDECTOMIA (INCLUYE OTRAS OPERA-
+GINECOMASTIA, CORRECCION PLASTICA
+VASECTOMIA BILATERAL, (PROC. AUT.) (LA V
+DILATACION DE ESTENOSIS BENIGNAS O MALIG
+PUNCION LUMBAR
+PAB-INSTALACION DE CATETER
+RETIRO CATETER QMT
+INST CATETER HEMODIALISIS TUNELIZADO
+BIOPSIA OSEA QUIRURGICA
+CATETER CVC SUBCL O YUGULAR PUNCION
+ANGIOPLASTIA INTRALUMINAL CORON. PROC. C
+CINECORONARIOGRAFIA DER./ IZQ. INCLUYE V
+CIRUGIA BARIÁTRICA BY PASS GASTRICO POR
+COLANGIOPANCREATOGRAFIA RETROGRADA ENDOS
+INSTALACION PROTESIS VIA BILIAR O PANCR
+COLECISTECTOMIA POR VIDEOLAPAROSCOPIA,
+EXTRACCION ENDOSCOPICA DE CALCULOS BILIA
+IMPLANTACION DE MARCAPASO C/ELECTROD. IN
+RESECCION INTESTINAL CON OSTOMIAS PROXIMAL Y DISTAL
+ESCOLIOSIS,TRAT.QUIR.,CUALQUIER VIA DE A
+ENDOPROTESIS TOTAL DE CADERA
+RECONSTRUCCION MAMARIA
+CONIZACION Y/O AMPUTACION DEL CUELLO, DI
+RECONSTITUCION TRANSITO POST OPERACION
+LAMINECTOMIA DESCOMPRESIVA
+ADENOMA O CANCER PROSTATICO, RESECCION E
+IMPLANTE RESINCRONIZADOR DESFIBRILADOR
+IMPLANTE RESINCRONIZADOR (CRT-P)
+INSTALACION CATETER RESERV SUB CUT QMT
+ANGIOPLASTIA INTRALUMINAL PERIFERICA PRO
+RESECCION AMPLIA DE TUMOR MALIGNO Y DISECCION GANGLIONAR
+ABLACION CON CORRIENTE CONTINUA O CON RA
+RINOPLASTIA Y/O SEPTOPLASTIA, CUALQUIER
+PROCURAMIENTO CORAZON/PULMON/VALVULAS
+PROCURAMIENTO RIÑONES
+PROCURAMIENTO CORNEAS
+RESECCION ENDOSCOPICA DE CANCER VESICAL
+QUERATECTOMIA FOTORREFRACTIVA O FOTOTERA
+PAD QUERATECTOMIA FOTORREFRACTIVA O QUER
+FACOERESIS EXTRACAPSULAR CON IMPLANTE D
+PAD CATARATAS
+ERCP C/PAPILO
+DP - IMPLANTACION DE MARCAPASO BICAMERAL
+DP - ANGIOPLASTIA INTRALUMINAL CORONARIA
+PAD COLELITIASIS
+PAD DE VARICES
+HERNIA ABDOMINAL POR ACCESO MININVASIVO
+SAFENECTOMIA UNILAT
+PAD LITOTRIPSIA EXTRACORPOREA
+DP - AORTOGRAFÍA, EN ADULTOS O NIÑOS (A.
+ESCROTO, PLASTIA DE, PROC. COMPLETO
+GINECOMASTIA, CORRECCION PLASTICA</textarea>
                         <div class="alert-help-text">Un valor por línea</div>
                     </div>
                 </div>
+            </div>
             </div>
         </div>
         
@@ -956,4 +949,5 @@ ABERTURA ARTIFICIAL, NO ESPECIFICADA</textarea>
     </script>
 </body>
 </html>
+
 
