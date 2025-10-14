@@ -1138,7 +1138,10 @@ function reAnalyze() {
                 // Check for yellow alert conditions using config
                 const hasYellowPrestacion = alertConfig.yellow.prestaciones.includes(r.NOMBRE_PRESTACION_INGRESO);
                 
-                if (hasYellowPrestacion) {
+                // Check if readmission is within 7 days
+                const isWithin7Days = r.dias !== null && r.dias <= 7;
+                
+                if (hasYellowPrestacion || isWithin7Days) {
                     r.hasYellowAlert = true;
                     patientsWithYellowAlert.add(r.RUT_PACIENTE);
                 }
@@ -1299,3 +1302,4 @@ function reAnalyze() {
     </script>
 </body>
 </html>
+
