@@ -302,6 +302,140 @@
             border: 2px solid #dee2e6;
             border-radius: 6px;
         }
+.config-group {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .config-group h4 {
+            font-size: 14px;
+            margin-bottom: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .config-group h4:hover {
+            opacity: 0.8;
+        }
+        
+        .config-group h4::before {
+            content: '▼';
+            font-size: 12px;
+            transition: transform 0.3s;
+        }
+        
+        .config-group.collapsed h4::before {
+            transform: rotate(-90deg);
+        }
+        
+        .config-group.verde h4 {
+            color: #28a745;
+        }
+        
+        .config-group.amarillo h4 {
+            color: #ffc107;
+        }
+        
+        .config-group.rojo h4 {
+            color: #dc3545;
+        }
+        
+        .config-content {
+            max-height: 500px;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        
+        .config-group.collapsed .config-content {
+            max-height: 0;
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .input-group input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .btn-small {
+            padding: 8px 15px;
+            font-size: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .btn-small:hover {
+            transform: translateY(-1px);
+        }
+        
+        .btn-remove {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 11px;
+            margin-left: 5px;
+        }
+        
+        .btn-remove:hover {
+            background: #c82333;
+        }
+        
+        .list-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .list-item {
+            background: #e9ecef;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .list-item.verde {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .list-item.amarillo {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .list-item.rojo {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+
+        
     </style>
 </head>
 <body>
@@ -327,124 +461,79 @@
             <div class="collapsible-header" onclick="toggleSection(this)">
                 ⚙️ Configuración de Alertas
             </div>
+            
             <div class="collapsible-content">
-            <div class="alert-config-grid">
-                <div class="alert-config-box red">
-                    <div class="alert-config-title">🔴 Alertas Rojas</div>
+                <div style="padding: 20px 0;">
                     
-                    <div class="alert-input-group">
-                        <label>DIAGNOSTICO_EGRESO:</label>
-                        <textarea id="redDiagnosticos">DOLOR AGUDO
-EMBOLIA PULMONAR
-EMBOLIA Y TROMBOSIS DE VENA NO ESPECIFICADA</textarea>
-                        <div class="alert-help-text">Un valor por línea</div>
+                    <div class="config-group rojo collapsed">
+                        <h4 onclick="toggleConfig(this)">🔴 Alertas Rojas - DIAGNOSTICO_EGRESO</h4>
+                        <div class="config-content">
+                            <div class="input-group">
+                                <input type="text" id="inputRedDiagnostico" placeholder="Nombre del diagnóstico">
+                                <button class="btn-small" onclick="addRedDiagnostico()">Agregar</button>
+                            </div>
+                            <div class="list-items" id="listRedDiagnosticos"></div>
+                        </div>
                     </div>
                     
-                    <div class="alert-input-group">
-                        <label>NOMBRE_PRESTACION_INGRESO:</label>
-                        <textarea id="redPrestaciones">LAP-LAPAROTOMIA EXPLORADA
-LAP-PERITONITIS DEFUSA AGUDA,TRAT.QUIR.
-PAB-HERIDA O DEHISCENCIA DE SUTURA DE PA
-LAPAROTOMIA EXPLORADORA, C/S LIBERACION
-REPARACION DE FISTULA LCR
-LAPAROTOMIA EXPLORADORA, LAPAROSCOPICA
-DP - REPOSICION DE ELECTRODOS DE MARCAPA</textarea>
-                        <div class="alert-help-text">Un valor por línea</div>
+                    <div class="config-group rojo collapsed">
+                        <h4 onclick="toggleConfig(this)">🔴 Alertas Rojas - NOMBRE_PRESTACION_INGRESO</h4>
+                        <div class="config-content">
+                            <div class="input-group">
+                                <input type="text" id="inputRedPrestacion" placeholder="Nombre de la prestación">
+                                <button class="btn-small" onclick="addRedPrestacion()">Agregar</button>
+                            </div>
+                            <div class="list-items" id="listRedPrestaciones"></div>
+                        </div>
                     </div>
+                    
+                    <div class="config-group amarillo collapsed">
+                        <h4 onclick="toggleConfig(this)">🟡 Alertas Amarillas - NOMBRE_PRESTACION_INGRESO</h4>
+                        <div class="config-content">
+                            <div class="input-group">
+                                <input type="text" id="inputYellowPrestacion" placeholder="Nombre de la prestación">
+                                <button class="btn-small" onclick="addYellowPrestacion()">Agregar</button>
+                            </div>
+                            <div class="list-items" id="listYellowPrestaciones"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="config-group verde collapsed">
+                        <h4 onclick="toggleConfig(this)">🟢 Alertas Verdes - DESC_COD_CAMA</h4>
+                        <div class="config-content">
+                            <div class="input-group">
+                                <input type="text" id="inputGreenCama" placeholder="Descripción de la cama">
+                                <button class="btn-small" onclick="addGreenCama()">Agregar</button>
+                            </div>
+                            <div class="list-items" id="listGreenCamas"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="config-group verde collapsed">
+                        <h4 onclick="toggleConfig(this)">🟢 Alertas Verdes - DIAGNOSTICO_EGRESO</h4>
+                        <div class="config-content">
+                            <div class="input-group">
+                                <input type="text" id="inputGreenDiagnostico" placeholder="Nombre del diagnóstico">
+                                <button class="btn-small" onclick="addGreenDiagnostico()">Agregar</button>
+                            </div>
+                            <div class="list-items" id="listGreenDiagnosticos"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="config-group verde collapsed">
+                        <h4 onclick="toggleConfig(this)">🟢 Alertas Verdes - NOMBRE_PRESTACION_INGRESO</h4>
+                        <div class="config-content">
+                            <div class="input-group">
+                                <input type="text" id="inputGreenPrestacion" placeholder="Nombre de la prestación">
+                                <button class="btn-small" onclick="addGreenPrestacion()">Agregar</button>
+                            </div>
+                            <div class="list-items" id="listGreenPrestaciones"></div>
+                        </div>
+                    </div>
+                    
+                    <button class="btn" onclick="reAnalyze()" style="width: 100%; margin-top: 20px;">🔄 Re-analizar con Nuevas Configuraciones</button>
+                    
                 </div>
-                
-                <div class="alert-config-box yellow">
-                    <div class="alert-config-title">🟡 Alertas Amarillas</div>
-                    
-                    <div class="alert-input-group">
-                        <label>NOMBRE_PRESTACION_INGRESO:</label>
-                        <textarea id="yellowPrestaciones">RECONSTITUCION  TRANSITO POST OPERACION
-ENDOPROTESIS TOTAL DE CADERA
-ASEO QUIRURGICO MAYOR
-PAB-CURACION POR MEDICO, QUEMADURA O SIM
-CAUTERIZACION UNI O BILATERAL DE VASOS E
-ASEO QUIRURGICO MENOR</textarea>
-                        <div class="alert-help-text">Un valor por línea</div>
-                    </div>
-                </div>
-                
-                <div class="alert-config-box green">
-                    <div class="alert-config-title">🟢 Alertas Verdes</div>
-                    
-                    <div class="alert-input-group">
-                        <label>DESC_COD_CAMA:</label>
-                        <textarea id="greenCamas">BOX TRANSITORIO 0 -3 HRS</textarea>
-                        <div class="alert-help-text">Un valor por línea</div>
-                    </div>
-                    
-                    <div class="alert-input-group">
-                        <label>DIAGNOSTICO_EGRESO:</label>
-                        <textarea id="greenDiagnosticos">MUCOPOLISACARIDOSIS NO ESPECIFICADA
-MUCOPOLISACARIDOSIS TIPO I
-ABERTURA ARTIFICIAL, NO ESPECIFICADA</textarea>
-                        <div class="alert-help-text">Un valor por línea</div>
-                    </div>
-                    
-                    <div class="alert-input-group">
-                        <label>NOMBRE_PRESTACION_INGRESO:</label>
-                        <textarea id="greenPrestaciones">INSTALACION CATETER RESERV SUB CUT QMT
-COLECISTECTOMIA POR VIDEOLAPAROSCOPIA
-HEMORROIDECTOMIA (INCLUYE OTRAS OPERA-
-GINECOMASTIA, CORRECCION PLASTICA
-VASECTOMIA BILATERAL, (PROC. AUT.) (LA V
-DILATACION DE ESTENOSIS BENIGNAS O MALIG
-PUNCION LUMBAR
-PAB-INSTALACION DE CATETER
-RETIRO CATETER QMT
-INST CATETER HEMODIALISIS TUNELIZADO
-BIOPSIA OSEA QUIRURGICA
-CATETER CVC SUBCL O YUGULAR PUNCION
-ANGIOPLASTIA INTRALUMINAL CORON. PROC. C
-CINECORONARIOGRAFIA DER./ IZQ. INCLUYE V
-CIRUGIA BARIÁTRICA BY PASS GASTRICO POR
-COLANGIOPANCREATOGRAFIA RETROGRADA ENDOS
-INSTALACION PROTESIS VIA BILIAR O PANCR
-COLECISTECTOMIA POR VIDEOLAPAROSCOPIA,
-EXTRACCION ENDOSCOPICA DE CALCULOS BILIA
-IMPLANTACION DE MARCAPASO C/ELECTROD. IN
-RESECCION INTESTINAL CON OSTOMIAS PROXIMAL Y DISTAL
-ESCOLIOSIS,TRAT.QUIR.,CUALQUIER VIA DE A
-ENDOPROTESIS TOTAL DE CADERA
-RECONSTRUCCION MAMARIA
-CONIZACION Y/O AMPUTACION DEL CUELLO, DI
-RECONSTITUCION TRANSITO POST OPERACION
-LAMINECTOMIA DESCOMPRESIVA
-ADENOMA O CANCER PROSTATICO, RESECCION E
-IMPLANTE RESINCRONIZADOR DESFIBRILADOR
-IMPLANTE RESINCRONIZADOR (CRT-P)
-INSTALACION CATETER RESERV SUB CUT QMT
-ANGIOPLASTIA INTRALUMINAL PERIFERICA PRO
-RESECCION AMPLIA DE TUMOR MALIGNO Y DISECCION GANGLIONAR
-ABLACION CON CORRIENTE CONTINUA O CON RA
-RINOPLASTIA Y/O SEPTOPLASTIA, CUALQUIER
-PROCURAMIENTO CORAZON/PULMON/VALVULAS
-PROCURAMIENTO RIÑONES
-PROCURAMIENTO CORNEAS
-RESECCION ENDOSCOPICA DE CANCER VESICAL
-QUERATECTOMIA FOTORREFRACTIVA O FOTOTERA
-PAD QUERATECTOMIA FOTORREFRACTIVA O QUER
-FACOERESIS EXTRACAPSULAR CON IMPLANTE D
-PAD CATARATAS
-ERCP C/PAPILO
-DP - IMPLANTACION DE MARCAPASO BICAMERAL
-DP - ANGIOPLASTIA INTRALUMINAL CORONARIA
-PAD COLELITIASIS
-PAD DE VARICES
-HERNIA ABDOMINAL POR ACCESO MININVASIVO
-SAFENECTOMIA UNILAT
-PAD LITOTRIPSIA EXTRACORPOREA
-DP - AORTOGRAFÍA, EN ADULTOS O NIÑOS (A.
-ESCROTO, PLASTIA DE, PROC. COMPLETO
-GINECOMASTIA, CORRECCION PLASTICA</textarea>
-                        <div class="alert-help-text">Un valor por línea</div>
-                    </div>
-                </div>
-            </div>
             </div>
         </div>
         
@@ -527,6 +616,107 @@ GINECOMASTIA, CORRECCION PLASTICA</textarea>
         let reintervencionesData = null;
         let allRecords = [];
         
+        let RED_DIAGNOSTICOS = [
+            'DOLOR AGUDO',
+            'EMBOLIA PULMONAR',
+            'EMBOLIA Y TROMBOSIS DE VENA NO ESPECIFICADA'
+        ];
+        
+        let RED_PRESTACIONES = [
+            'LAP-LAPAROTOMIA EXPLORADA',
+            'LAP-PERITONITIS DEFUSA AGUDA,TRAT.QUIR.',
+            'PAB-HERIDA O DEHISCENCIA DE SUTURA DE PA',
+            'LAPAROTOMIA EXPLORADORA, C/S LIBERACION',
+            'REPARACION DE FISTULA LCR',
+            'LAPAROTOMIA EXPLORADORA, LAPAROSCOPICA',
+            'DP - REPOSICION DE ELECTRODOS DE MARCAPA'
+        ];
+        
+        let YELLOW_PRESTACIONES = [
+            'RECONSTITUCION  TRANSITO POST OPERACION',
+            'ENDOPROTESIS TOTAL DE CADERA',
+            'ASEO QUIRURGICO MAYOR',
+            'PAB-CURACION POR MEDICO, QUEMADURA O SIM',
+            'CAUTERIZACION UNI O BILATERAL DE VASOS E',
+            'ASEO QUIRURGICO MENOR'
+        ];
+        
+        let GREEN_CAMAS = [
+            'BOX TRANSITORIO 0 -3 HRS'
+        ];
+        
+        let GREEN_DIAGNOSTICOS = [
+            'MUCOPOLISACARIDOSIS NO ESPECIFICADA',
+            'MUCOPOLISACARIDOSIS TIPO I',
+            'ABERTURA ARTIFICIAL, NO ESPECIFICADA'
+        ];
+        
+        let GREEN_PRESTACIONES = [
+            'INSTALACION CATETER RESERV SUB CUT QMT',
+            'COLECISTECTOMIA POR VIDEOLAPAROSCOPIA',
+            'HEMORROIDECTOMIA (INCLUYE OTRAS OPERA-',
+            'GINECOMASTIA, CORRECCION PLASTICA',
+            'VASECTOMIA BILATERAL, (PROC. AUT.) (LA V',
+            'DILATACION DE ESTENOSIS BENIGNAS O MALIG',
+            'PUNCION LUMBAR',
+            'PAB-INSTALACION DE CATETER',
+            'RETIRO CATETER QMT',
+            'INST CATETER HEMODIALISIS TUNELIZADO',
+            'BIOPSIA OSEA QUIRURGICA',
+            'CATETER CVC SUBCL O YUGULAR PUNCION',
+            'ANGIOPLASTIA INTRALUMINAL CORON. PROC. C',
+            'CINECORONARIOGRAFIA DER./ IZQ. INCLUYE V',
+            'CIRUGIA BARIÁTRICA BY PASS GASTRICO POR',
+            'COLANGIOPANCREATOGRAFIA RETROGRADA ENDOS',
+            'INSTALACION PROTESIS VIA BILIAR O PANCR',
+            'COLECISTECTOMIA POR VIDEOLAPAROSCOPIA,',
+            'EXTRACCION ENDOSCOPICA DE CALCULOS BILIA',
+            'IMPLANTACION DE MARCAPASO C/ELECTROD. IN',
+            'RESECCION INTESTINAL CON OSTOMIAS PROXIMAL Y DISTAL',
+            'ESCOLIOSIS,TRAT.QUIR.,CUALQUIER VIA DE A',
+            'ENDOPROTESIS TOTAL DE CADERA',
+            'RECONSTRUCCION MAMARIA',
+            'CONIZACION Y/O AMPUTACION DEL CUELLO, DI',
+            'RECONSTITUCION TRANSITO POST OPERACION',
+            'LAMINECTOMIA DESCOMPRESIVA',
+            'ADENOMA O CANCER PROSTATICO, RESECCION E',
+            'IMPLANTE RESINCRONIZADOR DESFIBRILADOR',
+            'IMPLANTE RESINCRONIZADOR (CRT-P)',
+            'INSTALACION CATETER RESERV SUB CUT QMT',
+            'ANGIOPLASTIA INTRALUMINAL PERIFERICA PRO',
+            'RESECCION AMPLIA DE TUMOR MALIGNO Y DISECCION GANGLIONAR',
+            'ABLACION CON CORRIENTE CONTINUA O CON RA',
+            'RINOPLASTIA Y/O SEPTOPLASTIA, CUALQUIER',
+            'PROCURAMIENTO CORAZON/PULMON/VALVULAS',
+            'PROCURAMIENTO RIÑONES',
+            'PROCURAMIENTO CORNEAS',
+            'RESECCION ENDOSCOPICA DE CANCER VESICAL',
+            'QUERATECTOMIA FOTORREFRACTIVA O FOTOTERA',
+            'PAD QUERATECTOMIA FOTORREFRACTIVA O QUER',
+            'FACOERESIS EXTRACAPSULAR CON IMPLANTE D',
+            'PAD CATARATAS',
+            'ERCP C/PAPILO',
+            'DP - IMPLANTACION DE MARCAPASO BICAMERAL',
+            'DP - ANGIOPLASTIA INTRALUMINAL CORONARIA',
+            'PAD COLELITIASIS',
+            'PAD DE VARICES',
+            'HERNIA ABDOMINAL POR ACCESO MININVASIVO',
+            'SAFENECTOMIA UNILAT',
+            'PAD LITOTRIPSIA EXTRACORPOREA',
+            'DP - AORTOGRAFÍA, EN ADULTOS O NIÑOS (A.',
+            'ESCROTO, PLASTIA DE, PROC. COMPLETO',
+            'GINECOMASTIA, CORRECCION PLASTICA'
+        ];
+        
+        
+        
+        
+        
+        
+        
+        
+
+        
         document.getElementById('reingresosFile').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
@@ -564,28 +754,187 @@ GINECOMASTIA, CORRECCION PLASTICA</textarea>
         
         document.getElementById('analyzeBtn').addEventListener('click', analyzeData);
         
-        function getAlertConfig() {
-            const parseTextarea = (id) => {
-                const text = document.getElementById(id).value;
-                return text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
-            };
-            
+       function getAlertConfig() {
             return {
                 red: {
-                    diagnosticos: parseTextarea('redDiagnosticos'),
-                    prestaciones: parseTextarea('redPrestaciones')
+                    diagnosticos: RED_DIAGNOSTICOS,
+                    prestaciones: RED_PRESTACIONES
                 },
                 yellow: {
-                    prestaciones: parseTextarea('yellowPrestaciones')
+                    prestaciones: YELLOW_PRESTACIONES
                 },
                 green: {
-                    camas: parseTextarea('greenCamas'),
-                    diagnosticos: parseTextarea('greenDiagnosticos'),
-                    prestaciones: parseTextarea('greenPrestaciones')
+                    camas: GREEN_CAMAS,
+                    diagnosticos: GREEN_DIAGNOSTICOS,
+                    prestaciones: GREEN_PRESTACIONES
                 }
             };
         }
+
+function addRedDiagnostico() {
+            const input = document.getElementById('inputRedDiagnostico');
+            const nombre = input.value.trim().toUpperCase();
+            if (nombre && !RED_DIAGNOSTICOS.includes(nombre)) {
+                RED_DIAGNOSTICOS.push(nombre);
+                input.value = '';
+                updateListDisplay();
+            }
+        }
         
+        function addRedPrestacion() {
+            const input = document.getElementById('inputRedPrestacion');
+            const nombre = input.value.trim().toUpperCase();
+            if (nombre && !RED_PRESTACIONES.includes(nombre)) {
+                RED_PRESTACIONES.push(nombre);
+                input.value = '';
+                updateListDisplay();
+            }
+        }
+        
+        function addYellowPrestacion() {
+            const input = document.getElementById('inputYellowPrestacion');
+            const nombre = input.value.trim().toUpperCase();
+            if (nombre && !YELLOW_PRESTACIONES.includes(nombre)) {
+                YELLOW_PRESTACIONES.push(nombre);
+                input.value = '';
+                updateListDisplay();
+            }
+        }
+        
+        function addGreenCama() {
+            const input = document.getElementById('inputGreenCama');
+            const nombre = input.value.trim().toUpperCase();
+            if (nombre && !GREEN_CAMAS.includes(nombre)) {
+                GREEN_CAMAS.push(nombre);
+                input.value = '';
+                updateListDisplay();
+            }
+        }
+        
+        function addGreenDiagnostico() {
+            const input = document.getElementById('inputGreenDiagnostico');
+            const nombre = input.value.trim().toUpperCase();
+            if (nombre && !GREEN_DIAGNOSTICOS.includes(nombre)) {
+                GREEN_DIAGNOSTICOS.push(nombre);
+                input.value = '';
+                updateListDisplay();
+            }
+        }
+        
+        function addGreenPrestacion() {
+            const input = document.getElementById('inputGreenPrestacion');
+            const nombre = input.value.trim().toUpperCase();
+            if (nombre && !GREEN_PRESTACIONES.includes(nombre)) {
+                GREEN_PRESTACIONES.push(nombre);
+                input.value = '';
+                updateListDisplay();
+            }
+        }
+        
+        function removeRedDiagnostico(nombre) {
+            const index = RED_DIAGNOSTICOS.indexOf(nombre);
+            if (index > -1) {
+                RED_DIAGNOSTICOS.splice(index, 1);
+                updateListDisplay();
+            }
+        }
+        
+        function removeRedPrestacion(nombre) {
+            const index = RED_PRESTACIONES.indexOf(nombre);
+            if (index > -1) {
+                RED_PRESTACIONES.splice(index, 1);
+                updateListDisplay();
+            }
+        }
+        
+        function removeYellowPrestacion(nombre) {
+            const index = YELLOW_PRESTACIONES.indexOf(nombre);
+            if (index > -1) {
+                YELLOW_PRESTACIONES.splice(index, 1);
+                updateListDisplay();
+            }
+        }
+        
+        function removeGreenCama(nombre) {
+            const index = GREEN_CAMAS.indexOf(nombre);
+            if (index > -1) {
+                GREEN_CAMAS.splice(index, 1);
+                updateListDisplay();
+            }
+        }
+        
+       function removeGreenDiagnostico(nombre) {
+            const index = GREEN_DIAGNOSTICOS.indexOf(nombre);
+            if (index > -1) {
+                GREEN_DIAGNOSTICOS.splice(index, 1);
+                updateListDisplay();
+            }
+        }
+        
+        function removeGreenPrestacion(nombre) {
+            const index = GREEN_PRESTACIONES.indexOf(nombre);
+            if (index > -1) {
+                GREEN_PRESTACIONES.splice(index, 1);
+                updateListDisplay();
+            }
+        }
+        
+        function updateListDisplay() {
+            const listRedDiagnosticos = document.getElementById('listRedDiagnosticos');
+            const listRedPrestaciones = document.getElementById('listRedPrestaciones');
+            const listYellowPrestaciones = document.getElementById('listYellowPrestaciones');
+            const listGreenCamas = document.getElementById('listGreenCamas');
+            const listGreenDiagnosticos = document.getElementById('listGreenDiagnosticos');
+            const listGreenPrestaciones = document.getElementById('listGreenPrestaciones');
+            
+            if (listRedDiagnosticos) {
+                listRedDiagnosticos.innerHTML = RED_DIAGNOSTICOS.map(c => 
+                    `<span class="list-item rojo">${c}<button class="btn-remove" onclick="removeRedDiagnostico('${c.replace(/'/g, "\\'")}')">×</button></span>`
+                ).join('');
+            }
+            
+            if (listRedPrestaciones) {
+                listRedPrestaciones.innerHTML = RED_PRESTACIONES.map(c => 
+                    `<span class="list-item rojo">${c}<button class="btn-remove" onclick="removeRedPrestacion('${c.replace(/'/g, "\\'")}')">×</button></span>`
+                ).join('');
+            }
+            
+            if (listYellowPrestaciones) {
+                listYellowPrestaciones.innerHTML = YELLOW_PRESTACIONES.map(c => 
+                    `<span class="list-item amarillo">${c}<button class="btn-remove" onclick="removeYellowPrestacion('${c.replace(/'/g, "\\'")}')">×</button></span>`
+                ).join('');
+            }
+            
+            if (listGreenCamas) {
+                listGreenCamas.innerHTML = GREEN_CAMAS.map(c => 
+                    `<span class="list-item verde">${c}<button class="btn-remove" onclick="removeGreenCama('${c.replace(/'/g, "\\'")}')">×</button></span>`
+                ).join('');
+            }
+            
+            if (listGreenDiagnosticos) {
+                listGreenDiagnosticos.innerHTML = GREEN_DIAGNOSTICOS.map(c => 
+                    `<span class="list-item verde">${c}<button class="btn-remove" onclick="removeGreenDiagnostico('${c.replace(/'/g, "\\'")}')">×</button></span>`
+                ).join('');
+            }
+            
+            if (listGreenPrestaciones) {
+                listGreenPrestaciones.innerHTML = GREEN_PRESTACIONES.map(c => 
+                    `<span class="list-item verde">${c}<button class="btn-remove" onclick="removeGreenPrestacion('${c.replace(/'/g, "\\'")}')">×</button></span>`
+                ).join('');
+            }
+        }
+
+function reAnalyze() {
+            if (reingresosData && reingresosData.length > 0) {
+                analyzeData();
+            }
+        }
+        
+        function toggleConfig(element) {
+            const configGroup = element.parentElement;
+            configGroup.classList.toggle('collapsed');
+        }
+            
         function parseDate(dateStr) {
             if (!dateStr) return null;
             if (typeof dateStr === 'number') {
@@ -838,6 +1187,7 @@ GINECOMASTIA, CORRECCION PLASTICA</textarea>
             document.getElementById('resultsSection').style.display = 'block';
             
             displayTable(paired);
+            updateListDisplay();
         }
         
         function displayTable(records) {
@@ -949,5 +1299,3 @@ GINECOMASTIA, CORRECCION PLASTICA</textarea>
     </script>
 </body>
 </html>
-
-
