@@ -284,7 +284,7 @@
         }
         
         .highlight-red {
-            background-color: #ffe6e6;
+            background-color: #ffcccc;
         }
         
         .highlight-green {
@@ -639,6 +639,7 @@
                                 <th>Diagnóstico</th>
                                 <th>ID Reingreso</th>
                                 <th>Cirugía</th>
+                                <th><input type="checkbox" id="checkAllReviewed" onchange="toggleAllReviewed()"> Revisado</th>
                                 <th><input type="checkbox" id="checkAllFiltered" onchange="toggleAllFiltered()"> Marcar</th>
                             </tr>
                         </thead>
@@ -1271,8 +1272,8 @@ function reAnalyze() {
                     <td>${r.DIAGNOSTICO_EGRESO || ''}</td>
                     <td>${r.ID_REINGRESO || ''}</td>
                     <td>${surgeryInfo}</td>
-                    <td><input type="checkbox" class="row-checkbox-filtered" data-id="${r.RUT_PACIENTE}-${r.ID_REINGRESO}"></td>
-                `;
+                    <td><input type="checkbox" class="row-checkbox-reviewed" data-id="${r.RUT_PACIENTE}-${r.ID_REINGRESO}"></td>
+                    <td><input type="checkbox" class="row-checkbox-filtered" data-id="${r.RUT_PACIENTE}-${r.ID_REINGRESO}"></td>                `;
                 tbody.appendChild(tr);
             });
         }
@@ -1280,6 +1281,14 @@ function reAnalyze() {
         function toggleAllFiltered() {
             const masterCheckbox = document.getElementById('checkAllFiltered');
             const checkboxes = document.querySelectorAll('.row-checkbox-filtered');
+            checkboxes.forEach(cb => {
+                cb.checked = masterCheckbox.checked;
+            });
+        }
+        
+        function toggleAllReviewed() {
+            const masterCheckbox = document.getElementById('checkAllReviewed');
+            const checkboxes = document.querySelectorAll('.row-checkbox-reviewed');
             checkboxes.forEach(cb => {
                 cb.checked = masterCheckbox.checked;
             });
@@ -1374,6 +1383,7 @@ function reAnalyze() {
     </script>
 </body>
 </html>
+
 
 
 
