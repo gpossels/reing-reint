@@ -300,14 +300,21 @@
         }
         
         .filter-section {
-            margin: 15px 0;
-        }
-        
-        .filter-section select {
-            padding: 8px 12px;
-            border: 2px solid #dee2e6;
-            border-radius: 6px;
-        }
+    margin: 0;
+    padding: 15px 20px;
+    background: white;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 2px solid #dee2e6;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.filter-section select {
+    padding: 8px 12px;
+    border: 2px solid #dee2e6;
+    border-radius: 6px;
+}
 .config-group {
             margin-bottom: 20px;
             padding: 15px;
@@ -1383,6 +1390,7 @@ function reAnalyze() {
     </script>
 </body>
 </html>
+
 
 
 
