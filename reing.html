@@ -1405,10 +1405,28 @@ function reAnalyze() {
                 alert('Error al copiar: ' + err);
             });
         }
-    
+    document.addEventListener('change', function(e) {
+            if (e.target.classList.contains('row-checkbox-reviewed')) {
+                const id = e.target.dataset.id;
+                if (e.target.checked) {
+                    checkedReviewed.add(id);
+                } else {
+                    checkedReviewed.delete(id);
+                }
+            }
+            if (e.target.classList.contains('row-checkbox-filtered')) {
+                const id = e.target.dataset.id;
+                if (e.target.checked) {
+                    checkedFiltered.add(id);
+                } else {
+                    checkedFiltered.delete(id);
+                }
+            }
+        });
     </script>
 </body>
 </html>
+
 
 
 
