@@ -648,6 +648,7 @@
                                 <th>Cirugía</th>
                                 <th><input type="checkbox" id="checkAllReviewed" onchange="toggleAllReviewed()"> Revisado</th>
                                 <th><input type="checkbox" id="checkAllFiltered" onchange="toggleAllFiltered()"> Marcar</th>
+                                <th>Notas</th>
                             </tr>
                         </thead>
                         <tbody id="tableBody"></tbody>
@@ -664,6 +665,8 @@
         let allRecords = [];
         let checkedReviewed = new Set();
         let checkedFiltered = new Set();
+        let checkedFiltered = new Set();
+        let textNotes = new Map();
         let RED_DIAGNOSTICOS = [
             'DOLOR AGUDO',
             'EMBOLIA PULMONAR',
@@ -1281,7 +1284,8 @@ function reAnalyze() {
                     <td>${r.ID_REINGRESO || ''}</td>
                     <td>${surgeryInfo}</td>
                     <td><input type="checkbox" class="row-checkbox-reviewed" data-id="${r.RUT_PACIENTE}-${r.ID_REINGRESO}"></td>
-                    <td><input type="checkbox" class="row-checkbox-filtered" data-id="${r.RUT_PACIENTE}-${r.ID_REINGRESO}"></td>                `;
+                    <td><input type="checkbox" class="row-checkbox-filtered" data-id="${r.RUT_PACIENTE}-${r.ID_REINGRESO}"></td>
+                    <td><input type="text" class="row-text-note" data-id="${r.RUT_PACIENTE}-${r.ID_REINGRESO}" placeholder="Escribe aquí..."></td>                `;
                 tbody.appendChild(tr);
             });
         checkedReviewed.forEach(id => {
@@ -1291,6 +1295,10 @@ function reAnalyze() {
             checkedFiltered.forEach(id => {
                 const cb = document.querySelector(`.row-checkbox-filtered[data-id="${id}"]`);
                 if (cb) cb.checked = true;
+            });
+            textNotes.forEach((value, id) => {
+                const input = document.querySelector(`.row-text-note[data-id="${id}"]`);
+                if (input) input.value = value;
             });
         }
         
@@ -1323,6 +1331,11 @@ function reAnalyze() {
             document.querySelectorAll('.row-checkbox-filtered:checked').forEach(cb => {
                 checkedFiltered.add(cb.dataset.id);
             });
+            document.querySelectorAll('.row-text-note').forEach(input => {
+                if (input.value.trim()) {
+                    textNotes.set(input.dataset.id, input.value);
+                }
+            });
 
             const filter = document.getElementById('filterSelect').value;
             let filtered = allRecords;
@@ -1351,27 +1364,28 @@ function reAnalyze() {
                 return;
             }
             
-            const data = [['RUT', 'Nombre', 'Edad', 'Sexo', 'Cama_Asignada', 'Prestacion_Realizada', 'ID_Ingreso', 'Fecha_Egreso', 'Fecha_Reingreso', 'Dias', 'Diagnostico', 'ID_Reingreso', 'Cirugia']];
-            
+            const data = [['RUT', 'Nombre', 'Edad', 'Sexo', 'Cama_Asignada', 'Prestacion_Realizada', 'ID_Ingreso', 'Fecha_Egreso', 'Fecha_Reingreso', 'Dias', 'Diagnostico', 'ID_Reingreso', 'Cirugia', 'Notas']];            
             checked.forEach(cb => {
-                const row = cb.closest('tr');
-                const cells = row.querySelectorAll('td');
-                data.push([
-                    cells[0].textContent,
-                    cells[1].textContent,
-                    cells[2].textContent,
-                    cells[3].textContent,
-                    cells[4].textContent,
-                    cells[5].textContent,
-                    cells[6].textContent,
-                    cells[7].textContent,
-                    cells[8].textContent,
-                    cells[9].textContent,
-                    cells[10].textContent,
-                    cells[11].textContent,
-                    cells[12].textContent
-                ]);
-            });
+    const row = cb.closest('tr');
+    const cells = row.querySelectorAll('td');
+    const noteInput = row.querySelector('.row-text-note');
+    data.push([
+        cells[0].textContent,
+        cells[1].textContent,
+        cells[2].textContent,
+        cells[3].textContent,
+        cells[4].textContent,
+        cells[5].textContent,
+        cells[6].textContent,
+        cells[7].textContent,
+        cells[8].textContent,
+        cells[9].textContent,
+        cells[10].textContent,
+        cells[11].textContent,
+        cells[12].textContent,
+        noteInput ? noteInput.value : ''
+    ]);
+});
             
             const wb = XLSX.utils.book_new();
             const ws = XLSX.utils.aoa_to_sheet(data);
@@ -1421,7 +1435,18 @@ function reAnalyze() {
                     checkedFiltered.delete(id);
                 }
             }
+       if (e.target.classList.contains('row-text-note')) {
+            const id = e.target.dataset.id;
+            if (e.target.value.trim()) {
+                textNotes.set(id, e.target.value);
+            } else {
+                textNotes.delete(id);
+            }
+        }
+    });
+    
         });
     </script>
 </body>
 </html>
+
