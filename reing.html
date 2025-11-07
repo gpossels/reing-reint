@@ -1284,6 +1284,16 @@ function reAnalyze() {
                     <td><input type="checkbox" class="row-checkbox-filtered" data-id="${r.RUT_PACIENTE}-${r.ID_REINGRESO}"></td>                `;
                 tbody.appendChild(tr);
             });
+        checkedReviewed.forEach(id => {
+                const cb = document.querySelector(`.row-checkbox-reviewed[data-id="${id}"]`);
+                if (cb) cb.checked = true;
+            });
+            checkedFiltered.forEach(id => {
+                const cb = document.querySelector(`.row-checkbox-filtered[data-id="${id}"]`);
+                if (cb) cb.checked = true;
+            });
+        }
+        
         }
         
         function toggleAllFiltered() {
@@ -1291,15 +1301,6 @@ function reAnalyze() {
             const checkboxes = document.querySelectorAll('.row-checkbox-filtered');
             checkboxes.forEach(cb => {
                 cb.checked = masterCheckbox.checked;
-            });
-        // Restore checkbox states
-            checkedReviewed.forEach(id => {
-                const cb = document.querySelector(`.row-checkbox-reviewed[data-id="${id}"]`);
-                if (cb) cb.checked = true;
-            });
-            checkedFiltered.forEach(id => {
-                const cb = document.querySelector(`.row-checkbox-filtered[data-id="${id}"]`);
-                if (cb) cb.checked = true;
             });
         
         }
@@ -1426,6 +1427,7 @@ function reAnalyze() {
     </script>
 </body>
 </html>
+
 
 
 
