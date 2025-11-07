@@ -662,7 +662,8 @@
         let reingresosData = null;
         let reintervencionesData = null;
         let allRecords = [];
-        
+        let checkedReviewed = new Set();
+        let checkedFiltered = new Set();
         let RED_DIAGNOSTICOS = [
             'DOLOR AGUDO',
             'EMBOLIA PULMONAR',
@@ -1291,6 +1292,16 @@ function reAnalyze() {
             checkboxes.forEach(cb => {
                 cb.checked = masterCheckbox.checked;
             });
+        // Restore checkbox states
+            checkedReviewed.forEach(id => {
+                const cb = document.querySelector(`.row-checkbox-reviewed[data-id="${id}"]`);
+                if (cb) cb.checked = true;
+            });
+            checkedFiltered.forEach(id => {
+                const cb = document.querySelector(`.row-checkbox-filtered[data-id="${id}"]`);
+                if (cb) cb.checked = true;
+            });
+        
         }
         
         function toggleAllReviewed() {
@@ -1306,6 +1317,14 @@ function reAnalyze() {
         }
         
         function applyFilter() {
+            // Save current checkbox states
+            document.querySelectorAll('.row-checkbox-reviewed:checked').forEach(cb => {
+                checkedReviewed.add(cb.dataset.id);
+            });
+            document.querySelectorAll('.row-checkbox-filtered:checked').forEach(cb => {
+                checkedFiltered.add(cb.dataset.id);
+            });
+
             const filter = document.getElementById('filterSelect').value;
             let filtered = allRecords;
             
@@ -1390,6 +1409,7 @@ function reAnalyze() {
     </script>
 </body>
 </html>
+
 
 
 
