@@ -554,7 +554,9 @@
                             <th>RUT Cirujano</th>
                             <th>Nombre Cirujano</th>
                             <th>ID Paciente</th>
-                            <th>Reintervención No Planificada</th>
+                            <th><input type="checkbox" id="checkAllReviewed" onchange="toggleAllReviewed()"> Revisado</th>
+                            <th><input type="checkbox" id="checkAllFiltered" onchange="toggleAllFiltered()"> Marcar</th>
+                            <th>Notas</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody"></tbody>
@@ -584,7 +586,9 @@
                             <th>RUT Cirujano</th>
                             <th>Nombre Cirujano</th>
                             <th>ID Paciente</th>
-                            <th>Reintervención No Planificada</th>
+                            <th><input type="checkbox" id="checkAllReviewed" onchange="toggleAllReviewed()"> Revisado</th>
+                            <th><input type="checkbox" id="checkAllFiltered" onchange="toggleAllFiltered()"> Marcar</th>
+                            <th>Notas</th>
                         </tr>
                     </thead>
                     <tbody id="completeTableBody"></tbody>
@@ -596,6 +600,9 @@
     </div>
 
     <script>
+        let checkedReviewed = new Set();
+        let checkedFiltered = new Set();
+        let textNotes = new Map();
         let CIRUGIAS_VERDE = [
             'DILATACION DE ESTENOSIS BENIGNAS O MALIG',
             'PUNCION LUMBAR',
@@ -1024,11 +1031,17 @@
         
         function applyColorFilter() {
     // Save current checkbox states from BOTH tables
-    const checkedIds = new Set();
-    document.querySelectorAll('.reintervencion-check:checked').forEach(cb => {
-        checkedIds.add(cb.getAttribute('data-id'));
+    document.querySelectorAll('.row-checkbox-reviewed:checked').forEach(cb => {
+        checkedReviewed.add(cb.dataset.id);
     });
-    console.log('Saved checked IDs:', Array.from(checkedIds));
+    document.querySelectorAll('.row-checkbox-filtered:checked').forEach(cb => {
+        checkedFiltered.add(cb.dataset.id);
+    });
+    document.querySelectorAll('.row-text-note').forEach(input => {
+        if (input.value.trim()) {
+            textNotes.set(input.dataset.id, input.value);
+        }
+    });
             
     const filterValue = document.getElementById('colorFilter').value;
     
@@ -1068,16 +1081,19 @@
     
     displayResults(filteredRecords);
     
-    // Restore checkbox states after DOM updates
+    // Restore checkbox states and notes after DOM updates
     setTimeout(() => {
-        console.log('Attempting to restore:', Array.from(checkedIds));
-        console.log('Available checkboxes:', document.querySelectorAll('input[data-id]').length);
-        checkedIds.forEach(id => {
-            // Restore in BOTH tables
-            document.querySelectorAll(`input[data-id="${id}"]`).forEach(checkbox => {
-                console.log('Restoring', id, 'in', checkbox.closest('table').id);
-                checkbox.checked = true;
-            });
+        checkedReviewed.forEach(id => {
+            const cb = document.querySelector(`.row-checkbox-reviewed[data-id="${id}"]`);
+            if (cb) cb.checked = true;
+        });
+        checkedFiltered.forEach(id => {
+            const cb = document.querySelector(`.row-checkbox-filtered[data-id="${id}"]`);
+            if (cb) cb.checked = true;
+        });
+        textNotes.forEach((value, id) => {
+            const input = document.querySelector(`.row-text-note[data-id="${id}"]`);
+            if (input) input.value = value;
         });
     }, 10);
 }
@@ -1131,8 +1147,9 @@
                     <td>${record.prestacion || ''}</td>
                     <td>${record.rutCirujano || ''}</td>
                     <td>${record.nombreCirujano || ''}</td>
-                    <td>${record.idPaciente || ''}</td>
-                    <td style="text-align: center;"><input type="checkbox" class="reintervencion-check" data-id="${record.idIngreso}-${record.idProtocolo}" data-record='${JSON.stringify(record).replace(/'/g, "&#39;")}' onchange="syncCheckboxes(this)" /></td>
+                    <td>${record.idPaciente || ''}</td><td><input type="checkbox" class="row-checkbox-reviewed" data-id="${record.idIngreso}-${record.idProtocolo}"></td>
+                    <td><input type="checkbox" class="row-checkbox-filtered" data-id="${record.idIngreso}-${record.idProtocolo}"></td>
+                    <td><input type="text" class="row-text-note" data-id="${record.idIngreso}-${record.idProtocolo}" placeholder="Escribe aquí..."></td>
                 `;
                 
                 tbody.appendChild(tr);
@@ -1236,8 +1253,9 @@ function downloadCheckedRows() {
             <td>${record.prestacion || ''}</td>
             <td>${record.rutCirujano || ''}</td>
             <td>${record.nombreCirujano || ''}</td>
-            <td>${record.idPaciente || ''}</td>
-            <td style="text-align: center;"><input type="checkbox" class="reintervencion-check" data-id="${record.idIngreso}-${record.idProtocolo}" data-record='${JSON.stringify(record).replace(/'/g, "&#39;")}' onchange="syncCheckboxes(this)" /></td>
+            <td>${record.idPaciente || ''}</td><td><input type="checkbox" class="row-checkbox-reviewed" data-id="${record.idIngreso}-${record.idProtocolo}"></td>
+            <td><input type="checkbox" class="row-checkbox-filtered" data-id="${record.idIngreso}-${record.idProtocolo}"></td>
+            <td><input type="text" class="row-text-note" data-id="${record.idIngreso}-${record.idProtocolo}" placeholder="Escribe aquí..."></td>
         `;
         
         tbody.appendChild(tr);
@@ -1270,7 +1288,48 @@ function copyRUT(element, rut) {
                 alert('Error al copiar: ' + err);
             });
         }
-    
+    function toggleAllReviewed() {
+    const masterCheckbox = document.getElementById('checkAllReviewed');
+    const checkboxes = document.querySelectorAll('.row-checkbox-reviewed');
+    checkboxes.forEach(cb => {
+        cb.checked = masterCheckbox.checked;
+    });
+}
+
+function toggleAllFiltered() {
+    const masterCheckbox = document.getElementById('checkAllFiltered');
+    const checkboxes = document.querySelectorAll('.row-checkbox-filtered');
+    checkboxes.forEach(cb => {
+        cb.checked = masterCheckbox.checked;
+    });
+}
+
+document.addEventListener('change', function(e) {
+    if (e.target.classList.contains('row-checkbox-reviewed')) {
+        const id = e.target.dataset.id;
+        if (e.target.checked) {
+            checkedReviewed.add(id);
+        } else {
+            checkedReviewed.delete(id);
+        }
+    }
+    if (e.target.classList.contains('row-checkbox-filtered')) {
+        const id = e.target.dataset.id;
+        if (e.target.checked) {
+            checkedFiltered.add(id);
+        } else {
+            checkedFiltered.delete(id);
+        }
+    }
+    if (e.target.classList.contains('row-text-note')) {
+        const id = e.target.dataset.id;
+        if (e.target.value.trim()) {
+            textNotes.set(id, e.target.value);
+        } else {
+            textNotes.delete(id);
+        }
+    }
+});
     </script>
         
     </script>
