@@ -1148,17 +1148,23 @@ function reAnalyze() {
                 });
             });
             
-            // Match with surgeries
-            const surgeryIndex = {};
-            if (reintervencionesData) {
-                reintervencionesData.forEach(s => {
-                    const id = s.ID_INGRESO;
-                    if (id) {
-                        if (!surgeryIndex[id]) surgeryIndex[id] = [];
-                        surgeryIndex[id].push(s);
-                    }
-                });
+            // Match with surgeries and extract notes
+const surgeryIndex = {};
+const notasIndex = {};
+if (reintervencionesData) {
+    reintervencionesData.forEach(s => {
+        const id = s.ID_INGRESO;
+        if (id) {
+            if (!surgeryIndex[id]) surgeryIndex[id] = [];
+            surgeryIndex[id].push(s);
+            // Store note if it exists
+            if (s.NOTAS && s.NOTAS.trim()) {
+                if (!notasIndex[id]) notasIndex[id] = [];
+                notasIndex[id].push(s.NOTAS.trim());
             }
+        }
+    });
+}
             
             const patientsWithSurgery = new Set();
             const patientsWithAlert = new Set();
@@ -1175,7 +1181,12 @@ function reAnalyze() {
                     r.surgeries = [];
                     r.hasSurgery = false;
                 }
-                
+                // Auto-populate notes from reintervenciones
+    if (id && notasIndex[id]) {
+        const combinedNotes = notasIndex[id].join(' | ');
+        const dataId = `${r.RUT_PACIENTE}-${r.ID_REINGRESO}`;
+        textNotes.set(dataId, combinedNotes);
+    }
                 // Check for red alert conditions using config
                 const hasRedDiagnostico = alertConfig.red.diagnosticos.includes(r.DIAGNOSTICO_EGRESO);
                 const hasRedPrestacion = alertConfig.red.prestaciones.includes(r.NOMBRE_PRESTACION_INGRESO);
@@ -1447,3 +1458,4 @@ function reAnalyze() {
     </script>
 </body>
 </html>
+
