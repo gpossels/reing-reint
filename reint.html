@@ -562,7 +562,6 @@
                     <tbody id="tableBody"></tbody>
                 </table>
             </div>
-            <button class="btn" onclick="downloadCheckedRows()" style="margin-top: 20px; width: 100%;">📥 Descargar Filas Marcadas</button>
         </div>
     </div>
     
@@ -597,6 +596,9 @@
         </div>
     </div>
 </div>
+        <div style="padding: 20px 30px;">
+        <button class="btn" onclick="downloadAllMarkedRows()" style="width: 100%;">📥 Descargar Todas las Filas Marcadas (Ambas Tablas)</button>
+    </div>
     </div>
 
     <script>
@@ -1155,60 +1157,70 @@
                 tbody.appendChild(tr);
             });
         }
-function downloadCheckedRows() {
-        const checkboxes = document.querySelectorAll('.reintervencion-check:checked');
-        
-        if (checkboxes.length === 0) {
-            alert('No hay filas marcadas para descargar');
-            return;
-        }
-        
-        const selectedRecords = [];
-        const seenIds = new Set();
-        
-        checkboxes.forEach(cb => {
-            const dataId = cb.getAttribute('data-id');
-            if (!seenIds.has(dataId)) {
-                seenIds.add(dataId);
-                const record = JSON.parse(cb.getAttribute('data-record'));
-                selectedRecords.push(record);
-            }
-        });
-        
-        const ws_data = [
-            ['ID_INGRESO', 'ID_PROTOCOLO', 'RUT_PACIENTE', 'PACIENTE', 'FECHA_CIRUGIA', 'ESTADO', 'COD_PRESTACION', 'PRESTACION', 'RUT_1ER_CIR', 'NOMBRE_1ER_CIR', 'ID_PACIENTE']
-        ];
-        
-        selectedRecords.forEach(record => {
-            const formatDate = (dateStr) => {
-                const date = parseDate(dateStr);
-                if (!date) return dateStr || '';
-                return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
-            };
-            
-            ws_data.push([
-                record.idIngreso || '',
-                record.idProtocolo || '',
-                record.rutPaciente || '',
-                record.paciente || '',
-                formatDate(record.fechaCirugia),
-                record.estado || '',
-                record.codPrestacion || '',
-                record.prestacion || '',
-                record.rutCirujano || '',
-                record.nombreCirujano || '',
-                record.idPaciente || ''
-            ]);
-        });
-        
-        const wb = XLSX.utils.book_new();
-        const ws = XLSX.utils.aoa_to_sheet(ws_data);
-        XLSX.utils.book_append_sheet(wb, ws, 'Reintervenciones');
-        
-        const fecha = new Date().toISOString().slice(0, 10);
-        XLSX.writeFile(wb, `Reintervenciones_Marcadas_${fecha}.xlsx`);
+function downloadAllMarkedRows() {
+    // Collect all checked rows from both tables
+    const checkboxes = document.querySelectorAll('.row-checkbox-filtered:checked');
+    
+    if (checkboxes.length === 0) {
+        alert('No hay filas marcadas para descargar');
+        return;
     }
+    
+    const selectedRecords = [];
+    const seenIds = new Set();
+    
+    checkboxes.forEach(cb => {
+        const dataId = cb.getAttribute('data-id');
+        if (!seenIds.has(dataId)) {
+            seenIds.add(dataId);
+            // Find the record from both possible sources
+            const record = allClassifiedRecords.find(r => 
+                `${r.idIngreso}-${r.idProtocolo}` === dataId
+            ) || completeOriginalData.find(r => 
+                `${r.idIngreso}-${r.idProtocolo}` === dataId
+            );
+            if (record) {
+                selectedRecords.push({record, dataId});
+            }
+        }
+    });
+    
+    const ws_data = [
+        ['ID_INGRESO', 'ID_PROTOCOLO', 'RUT_PACIENTE', 'PACIENTE', 'FECHA_CIRUGIA', 'ESTADO', 'COD_PRESTACION', 'PRESTACION', 'RUT_1ER_CIR', 'NOMBRE_1ER_CIR', 'ID_PACIENTE', 'NOTAS']
+    ];
+    
+    selectedRecords.forEach(({record, dataId}) => {
+        const formatDate = (dateStr) => {
+            const date = parseDate(dateStr);
+            if (!date) return dateStr || '';
+            return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+        };
         
+        const noteValue = textNotes.get(dataId) || '';
+        
+        ws_data.push([
+            record.idIngreso || '',
+            record.idProtocolo || '',
+            record.rutPaciente || '',
+            record.paciente || '',
+            formatDate(record.fechaCirugia),
+            record.estado || '',
+            record.codPrestacion || '',
+            record.prestacion || '',
+            record.rutCirujano || '',
+            record.nombreCirujano || '',
+            record.idPaciente || '',
+            noteValue
+        ]);
+    });
+    
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(ws_data);
+    XLSX.utils.book_append_sheet(wb, ws, 'Reintervenciones');
+    
+    const fecha = new Date().toISOString().slice(0, 10);
+    XLSX.writeFile(wb, `Reintervenciones_Marcadas_${fecha}.xlsx`);
+}        
     function displayCompleteList(records) {
     console.log('displayCompleteList received records:', records.length);
     const tbody = document.getElementById('completeTableBody');
