@@ -886,8 +886,14 @@ if (!sheetName) {
 }
             
             const sheet = workbook.Sheets[sheetName];
-            const data = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null });
-            
+const data = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null });
+
+// Verify we have data
+if (data.length < 2) {
+    alert('La hoja encontrada no contiene datos suficientes (se necesita al menos una fila de encabezados y una fila de datos).');
+    return;
+}
+   console.log('Hoja encontrada con estructura válida:', sheetName);         
             rawData = [];
             let totalRecords = 0;
             
