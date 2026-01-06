@@ -838,38 +838,98 @@
             return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
         }
         
-        function analyzeData() {
-            if (!workbook) return;
-            
-            const possibleSheets = ['Exportar Hoja de Trabajo', 'MEDIC'];
+        // Function to validate if a sheet has the correct structure
+function validateSheetStructure(sheet) {
+    const data = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null });
+    if (data.length < 2) return false; // Need at least header + 1 row
+    
+    const header = data[0];
+    // Check if header contains expected columns (case-insensitive)
+    const headerStr = header.map(h => (h || '').toString().toUpperCase()).join('|');
+    
+    const requiredColumns = ['INGRESO', 'PROTOCOLO', 'RUT', 'PACIENTE', 'FECHA', 'PRESTACION', 'CIRUJANO'];
+    const hasRequiredColumns = requiredColumns.every(col => headerStr.includes(col));
+    
+    return hasRequiredColumns;
+}
 
-            // Find the first that exists in the workbook
-            const sheetName = possibleSheets.find(name => workbook.Sheets[name]);
+// Try to find a sheet with the correct structure
+let sheetName = null;
+let sheet = null;
 
-            if (!sheetName) {
-                throw new Error('No valid sheet found. Expected "Exportar Hoja de Trabajo" or "MEDIC".');
-            }
-            
-            const sheet = workbook.Sheets[sheetName];
+// First, try the known sheet names
+const possibleSheets = ['Exportar Hoja de Trabajo', 'MEDIC'];
+for (const name of possibleSheets) {
+    if (workbook.Sheets[name]) {
+        const testSheet = workbook.Sheets[name];
+        if (validateSheetStructure(testSheet)) {
+            sheetName = name;
+            sheet = testSheet;
+            break;
+        }
+    }
+}
+
+// If not found, check all sheets in the workbook
+if (!sheet) {
+    const allSheetNames = workbook.SheetNames;
+    for (const name of allSheetNames) {
+        const testSheet = workbook.Sheets[name];
+        if (validateSheetStructure(testSheet)) {
+            sheetName = name;
+            sheet = testSheet;
+            break;
+        }
+    }
+}
+
+if (!sheet) {
+    alert('No se encontró ninguna hoja con la estructura correcta. Asegúrate de que el archivo contiene las columnas: ID_INGRESO, ID_PROTOCOLO, RUT_PACIENTE, PACIENTE, FECHA_CIRUGIA, PRESTACION, etc.');
+    return;
+}
             const data = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null });
-            
-            rawData = [];
-            let totalRecords = 0;
-            
-            for (let i = 1; i < data.length; i++) {
-                const row = data[i];
-                
-                const idIngreso = row[0];
-                const idProtocolo = row[1];
-                const rutPaciente = row[2];
-                const paciente = row[3];
-                const fechaCirugia = row[4];
-                const estado = row[5];
-                const codPrestacion = row[6];
-                const prestacion = row[7];
-                const rutCirujano = row[8];
-                const nombreCirujano = row[9];
-                const idPaciente = row[10];
+
+rawData = [];
+let totalRecords = 0;
+
+// Get header row to find column indices dynamically
+const header = data[0].map(h => (h || '').toString().toUpperCase().trim());
+
+// Find column indices
+const colIndices = {
+    idIngreso: header.findIndex(h => h.includes('INGRESO') && h.includes('ID')),
+    idProtocolo: header.findIndex(h => h.includes('PROTOCOLO') && h.includes('ID')),
+    rutPaciente: header.findIndex(h => h.includes('RUT') && h.includes('PACIENTE')),
+    paciente: header.findIndex(h => (h.includes('PACIENTE') || h.includes('NOMBRE')) && !h.includes('RUT') && !h.includes('ID')),
+    fechaCirugia: header.findIndex(h => h.includes('FECHA') && h.includes('CIRUGIA')),
+    estado: header.findIndex(h => h.includes('ESTADO')),
+    codPrestacion: header.findIndex(h => (h.includes('COD') || h.includes('CODIGO')) && h.includes('PRESTACION')),
+    prestacion: header.findIndex(h => h.includes('PRESTACION') && !h.includes('COD')),
+    rutCirujano: header.findIndex(h => h.includes('RUT') && h.includes('CIR')),
+    nombreCirujano: header.findIndex(h => h.includes('NOMBRE') && h.includes('CIR')),
+    idPaciente: header.findIndex(h => h.includes('ID') && h.includes('PACIENTE'))
+};
+
+// Validate that critical columns were found
+if (colIndices.rutPaciente === -1 || colIndices.fechaCirugia === -1 || colIndices.prestacion === -1) {
+    alert('No se pudieron identificar todas las columnas necesarias. Verifica que el archivo tenga las columnas correctas.');
+    return;
+}
+
+for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    
+    const idIngreso = colIndices.idIngreso !== -1 ? row[colIndices.idIngreso] : null;
+    const idProtocolo = colIndices.idProtocolo !== -1 ? row[colIndices.idProtocolo] : null;
+    const rutPaciente = row[colIndices.rutPaciente];
+    const paciente = colIndices.paciente !== -1 ? row[colIndices.paciente] : null;
+    const fechaCirugia = row[colIndices.fechaCirugia];
+    const estado = colIndices.estado !== -1 ? row[colIndices.estado] : null;
+    const codPrestacion = colIndices.codPrestacion !== -1 ? row[colIndices.codPrestacion] : null;
+    const prestacion = row[colIndices.prestacion];
+    const rutCirujano = colIndices.rutCirujano !== -1 ? row[colIndices.rutCirujano] : null;
+    const nombreCirujano = colIndices.nombreCirujano !== -1 ? row[colIndices.nombreCirujano] : null;
+    const idPaciente = colIndices.idPaciente !== -1 ? row[colIndices.idPaciente] : null;
                 
                 if (!idIngreso) continue;
                 
