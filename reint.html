@@ -841,14 +841,49 @@
         function analyzeData() {
             if (!workbook) return;
             
-            const possibleSheets = ['Exportar Hoja de Trabajo', 'MEDIC'];
+            // Expected column headers in order
+const expectedHeaders = [
+    'ID_INGRESO',
+    'ID_PROTOCOLO', 
+    'RUT_PACIENTE',
+    'PACIENTE',
+    'FECHA_CIRUGIA',
+    'ESTADO',
+    'COD_PRESTACION',
+    'PRESTACION',
+    'RUT_1ER_CIR',
+    'NOMBRE_1ER_CIR',
+    'ID_PACIENTE'
+];
 
-            // Find the first that exists in the workbook
-            const sheetName = possibleSheets.find(name => workbook.Sheets[name]);
-
-            if (!sheetName) {
-                throw new Error('No valid sheet found. Expected "Exportar Hoja de Trabajo" or "MEDIC".');
+// Find sheet with matching column structure
+let sheetName = null;
+for (const name of Object.keys(workbook.Sheets)) {
+    const sheet = workbook.Sheets[name];
+    const data = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null });
+    
+    if (data.length > 0) {
+        const headers = data[0];
+        // Check if first 11 columns match expected headers
+        let matches = 0;
+        for (let i = 0; i < expectedHeaders.length && i < headers.length; i++) {
+            if (headers[i] && headers[i].toString().trim().toUpperCase() === expectedHeaders[i]) {
+                matches++;
             }
+        }
+        
+        // If at least 9 out of 11 headers match, consider it valid
+        if (matches >= 9) {
+            sheetName = name;
+            break;
+        }
+    }
+}
+
+if (!sheetName) {
+    alert('No se encontró una hoja con la estructura de columnas esperada.\nSe esperan columnas: ID_INGRESO, ID_PROTOCOLO, RUT_PACIENTE, PACIENTE, FECHA_CIRUGIA, ESTADO, COD_PRESTACION, PRESTACION, RUT_1ER_CIR, NOMBRE_1ER_CIR, ID_PACIENTE');
+    return;
+}
             
             const sheet = workbook.Sheets[sheetName];
             const data = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null });
